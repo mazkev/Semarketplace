@@ -78,6 +78,7 @@ export default function FrontFooter({ setPage }) {
               <a href="#" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 dark:hover:text-white transition-colors">Privacy Policy</a>
               <a href="#" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 dark:hover:text-white transition-colors">Terms of Service</a>
               <a href="#" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 dark:hover:text-white transition-colors">Cookies</a>
+              <a href="#/backOffice" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">Admin Portal</a>
            </div>
            <div className="flex gap-4">
               {['𝕏', '📸', '📽️', '📍'].map(icon => (

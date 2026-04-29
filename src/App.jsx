@@ -21,7 +21,7 @@ function ensureAdmins() {
 ensureAdmins()
 
 export default function App() {
-  const [path, setPath] = useState(window.location.pathname)
+  const [path, setPath] = useState(window.location.hash || '#/')
   const [customerSession, setCustomerSession]   = useLocalStorage('nex_customer_session', null)
   const [adminSession, setAdminSession]         = useLocalStorage('nex_admin_session', null)
   const [darkMode, setDarkMode]                 = useLocalStorage('nex_dark_mode', false)
@@ -32,19 +32,21 @@ export default function App() {
   }, [darkMode])
 
   useEffect(() => {
-    const handleLocation = () => setPath(window.location.pathname)
-    window.addEventListener('popstate', handleLocation)
-    return () => window.removeEventListener('popstate', handleLocation)
+    const handleLocation = () => setPath(window.location.hash || '#/')
+    window.addEventListener('hashchange', handleLocation)
+    return () => window.removeEventListener('hashchange', handleLocation)
   }, [])
 
   const navigate = (newPath) => {
-    window.history.pushState({}, '', newPath)
-    setPath(newPath)
+    // Ensure newPath starts with #
+    const hashPath = newPath.startsWith('#') ? newPath : `#${newPath}`
+    window.location.hash = hashPath
+    setPath(hashPath)
   }
 
 
   // --- ADMIN ROUTE ---
-  if (path.startsWith('/backOffice')) {
+  if (path.startsWith('#/backOffice')) {
     if (adminSession) {
       return (
         <BackApp 
@@ -58,7 +60,7 @@ export default function App() {
     return (
       <AdminAuth 
         onLogin={(admin) => setAdminSession(admin)} 
-        onBack={() => navigate('/')} 
+        onBack={() => navigate('#/')} 
       />
     )
   }
