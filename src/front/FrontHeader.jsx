@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CATEGORIES } from '../utils'
+import { useLanguage } from '../i18n'
 
 export default function FrontHeader({
   user, cartCount, onCartOpen, onLogout,
@@ -11,20 +12,21 @@ export default function FrontHeader({
   const [dropOpen, setDropOpen] = useState(false)
   const isDark = Boolean(darkMode)
   const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+  const { lang, setLang, t } = useLanguage()
 
   return (
     <header className="sticky top-0 z-[100] bg-white dark:bg-zinc-950 border-b-4 border-black dark:border-white transition-colors select-none font-sans">
       {/* Neo Retro Marquee Ticker */}
       <div className="bg-neoYellow text-black border-b-3 border-black py-1.5 overflow-hidden font-black text-xs uppercase tracking-wider">
         <div className="animate-ticker flex gap-8 whitespace-nowrap">
-          <span>⚡ NEO-MARKETPLACE v2.0 READY</span>
-          <span>✦ FREE SHIPPING ALL OVER INDONESIA</span>
-          <span>⚡ USE VOUCHER "SEMARKET10" FOR 10% OFF</span>
-          <span>✦ 100% SECURE &amp; VERIFIED</span>
-          <span>⚡ NEO-MARKETPLACE v2.0 READY</span>
-          <span>✦ FREE SHIPPING ALL OVER INDONESIA</span>
-          <span>⚡ USE VOUCHER "SEMARKET10" FOR 10% OFF</span>
-          <span>✦ 100% SECURE &amp; VERIFIED</span>
+          <span>{t('ticker1')}</span>
+          <span>{t('ticker2')}</span>
+          <span>{t('ticker3')}</span>
+          <span>{t('ticker4')}</span>
+          <span>{t('ticker1')}</span>
+          <span>{t('ticker2')}</span>
+          <span>{t('ticker3')}</span>
+          <span>{t('ticker4')}</span>
         </div>
       </div>
 
@@ -58,7 +60,7 @@ export default function FrontHeader({
                 : 'bg-white dark:bg-zinc-800 text-black dark:text-white hover:bg-yellow-50'
             }`}
           >
-            🏪 Store
+            🏪 {t('store')}
           </button>
           <button
             onClick={() => setPage('orders')}
@@ -68,7 +70,7 @@ export default function FrontHeader({
                 : 'bg-white dark:bg-zinc-800 text-black dark:text-white hover:bg-yellow-50'
             }`}
           >
-            🧾 Orders {ordersCount > 0 && `(${ordersCount})`}
+            🧾 {t('orders')} {ordersCount > 0 && `(${ordersCount})`}
           </button>
           <button
             onClick={() => setPage('wishlist')}
@@ -78,7 +80,7 @@ export default function FrontHeader({
                 : 'bg-white dark:bg-zinc-800 text-black dark:text-white hover:bg-yellow-50'
             }`}
           >
-            ❤️ Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
+            ❤️ {t('wishlist')} {wishlistCount > 0 && `(${wishlistCount})`}
           </button>
         </nav>
 
@@ -88,7 +90,7 @@ export default function FrontHeader({
             id="header-search-input"
             type="text"
             className="w-full bg-neoCream dark:bg-zinc-900 border-3 border-black dark:border-white px-4 py-2 text-xs font-bold placeholder-gray-500 text-black dark:text-white shadow-neo-sm outline-none transition-all focus:bg-white focus:translate-x-0.5 focus:translate-y-0.5 focus:shadow-none"
-            placeholder="Search items, brands, tech..."
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={e => { setSearch(e.target.value); setPage('shop') }}
           />
@@ -97,12 +99,23 @@ export default function FrontHeader({
             className="absolute right-1.5 px-3 py-1 bg-neoYellow hover:bg-yellow-300 text-black border-2 border-black font-black text-xs uppercase shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
             onClick={() => setPage('shop')}
           >
-            SEARCH 🔍
+            {t('searchBtn')}
           </button>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Language Switcher Button (ID / EN) */}
+          <button
+            id="lang-toggle-btn"
+            className="h-11 px-3 bg-neoYellow hover:bg-yellow-300 border-3 border-black text-black font-black text-xs uppercase shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center gap-1.5"
+            onClick={() => setLang(lang === 'id' ? 'en' : 'id')}
+            title="Ubah Bahasa / Switch Language"
+          >
+            <span className="text-base">{lang === 'id' ? '🇮🇩' : '🇬🇧'}</span>
+            <span className="font-black">{lang.toUpperCase()}</span>
+          </button>
+
           {/* Wishlist Mobile */}
           <button
             id="wishlist-btn-mobile"
@@ -125,7 +138,7 @@ export default function FrontHeader({
             onClick={onCartOpen}
           >
             <span className="text-lg">🛒</span>
-            <span className="hidden sm:inline uppercase">CART</span>
+            <span className="hidden sm:inline uppercase">{t('cart')}</span>
             {cartCount > 0 && (
               <span className="bg-black text-white border border-black text-[10px] font-black px-1.5 py-0.5 ml-0.5 shadow-neo-sm">
                 {cartCount}
@@ -163,7 +176,7 @@ export default function FrontHeader({
                 <div className="fixed inset-0 z-40" onClick={() => setDropOpen(false)} />
                 <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 border-4 border-black dark:border-white shadow-neo-xl z-50 overflow-hidden animate-scale-in">
                   <div className="p-4 bg-neoYellow text-black border-b-3 border-black">
-                    <div className="inline-block bg-black text-white text-[9px] font-black px-1.5 py-0.2 mb-1">MEMBER</div>
+                    <div className="inline-block bg-black text-white text-[9px] font-black px-1.5 py-0.2 mb-1">{t('member')}</div>
                     <div className="font-black text-sm uppercase leading-tight truncate">{user.name}</div>
                     <div className="text-[10px] font-bold text-black/80 truncate mt-0.5">{user.email}</div>
                   </div>
@@ -173,14 +186,14 @@ export default function FrontHeader({
                       className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-black dark:text-white border-2 border-black hover:bg-yellow-50 dark:hover:bg-zinc-800 shadow-neo-sm transition-all"
                       onClick={() => { setPage('orders'); setDropOpen(false) }}
                     >
-                      📦 My Orders ({ordersCount})
+                      📦 {t('orders')} ({ordersCount})
                     </button>
                     <button 
                       id="view-wishlist-menu" 
                       className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-black dark:text-white border-2 border-black hover:bg-yellow-50 dark:hover:bg-zinc-800 shadow-neo-sm transition-all"
                       onClick={() => { setPage('wishlist'); setDropOpen(false) }}
                     >
-                      ❤️ Wishlist ({wishlistCount})
+                      ❤️ {t('wishlist')} ({wishlistCount})
                     </button>
                     {onOpenAdmin && (
                       <button 
@@ -195,7 +208,7 @@ export default function FrontHeader({
                       className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-white bg-neoPink border-2 border-black shadow-neo-sm hover:bg-rose-500 transition-all mt-2"
                       onClick={() => { setDropOpen(false); onLogout() }}
                     >
-                      🚪 Sign Out
+                      🚪 {t('signOut')}
                     </button>
                   </div>
                 </div>
@@ -211,7 +224,7 @@ export default function FrontHeader({
           <input
             type="text"
             className="w-full bg-neoCream dark:bg-zinc-900 border-3 border-black text-xs font-bold px-3 py-2 text-black dark:text-white shadow-neo-sm outline-none"
-            placeholder="Search items..."
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={e => { setSearch(e.target.value); setPage('shop') }}
           />
@@ -228,7 +241,7 @@ export default function FrontHeader({
       <div className="border-t-3 border-black dark:border-white bg-neoCream dark:bg-zinc-900 py-2.5 overflow-x-auto no-scrollbar">
         <div className="container mx-auto px-4 flex items-center gap-2 whitespace-nowrap">
           <span className="text-[10px] font-black uppercase bg-black text-white px-2 py-1 shadow-neo-sm mr-1 shrink-0">
-            DEPT:
+            {t('dept')}
           </span>
           {CATEGORIES.map(cat => {
             const active = activeCategory === cat.id

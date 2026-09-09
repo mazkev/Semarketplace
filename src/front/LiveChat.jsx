@@ -1,38 +1,63 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useLanguage } from '../i18n'
 
-const AI_SUGGESTIONS = [
+const AI_SUGGESTIONS_ID = [
   '⚡ Rekomendasi Flash Sale',
   '🎟️ Kode Voucher Aktif',
   '🚚 Cek Info Ongkir',
   '📦 Lacak Pesanan Saya'
 ]
 
-function getAIResponse(text, userName) {
+const AI_SUGGESTIONS_EN = [
+  '⚡ Flash Deals Recommendation',
+  '🎟️ Active Promo Coupons',
+  '🚚 Shipping & Delivery Info',
+  '📦 Track My Orders'
+]
+
+function getAIResponse(text, userName, lang) {
   const lower = text.toLowerCase()
-  if (lower.includes('voucher') || lower.includes('kupon') || lower.includes('diskon')) {
-    return `🎉 Gunakan kode kupon **SEMARKET10** saat checkout untuk potongan 10% langsung di semua produk, atau **SAVE50** untuk diskon Rp 50.000!`
+  const isEn = lang === 'en'
+
+  if (lower.includes('voucher') || lower.includes('kupon') || lower.includes('coupon') || lower.includes('diskon') || lower.includes('discount')) {
+    return isEn 
+      ? `🎉 Use coupon code **SEMARKET10** at checkout for an instant 10% discount storewide, or **SAVE50** for a flat Rp 50.000 off!`
+      : `🎉 Gunakan kode kupon **SEMARKET10** saat checkout untuk potongan 10% langsung di semua produk, atau **SAVE50** untuk diskon Rp 50.000!`
   }
-  if (lower.includes('flash') || lower.includes('sale') || lower.includes('promo') || lower.includes('rekomendasi')) {
-    return `⚡ Rekomendasi terpanas hari ini ada di bagian **Lightning Flash Deals** dengan diskon hingga 50%! Cek di beranda toko sekarang sebelum kehabisan!`
+  if (lower.includes('flash') || lower.includes('sale') || lower.includes('promo') || lower.includes('deal') || lower.includes('rekomendasi')) {
+    return isEn
+      ? `⚡ Today's hottest picks are featured in the **Lightning Flash Sale** section with up to 50% discount! Check the storefront before they sell out!`
+      : `⚡ Rekomendasi terpanas hari ini ada di bagian **Kilat Flash Sale** dengan diskon hingga 50%! Cek di beranda toko sekarang sebelum kehabisan!`
   }
-  if (lower.includes('ongkir') || lower.includes('kirim') || lower.includes('shipping') || lower.includes('antar')) {
-    return `🚚 Kabar baik! Saat ini SEMARKET memberikan **GRATIS ONGKIR 100% (Rp 0)** ke seluruh wilayah Indonesia dengan pengiriman ekspres kilat!`
+  if (lower.includes('ongkir') || lower.includes('kirim') || lower.includes('shipping') || lower.includes('antar') || lower.includes('delivery')) {
+    return isEn
+      ? `🚚 Great news! SEMARKET currently provides **100% FREE SHIPPING (Rp 0)** nationwide across Indonesia with express dispatch!`
+      : `🚚 Kabar baik! Saat ini SEMARKET memberikan **GRATIS ONGKIR 100% (Rp 0)** ke seluruh wilayah Indonesia dengan pengiriman ekspres kilat!`
   }
-  if (lower.includes('order') || lower.includes('pesan') || lower.includes('lacak') || lower.includes('status')) {
-    return `📦 Anda dapat mengecek detail dan status pesanan langsung di menu **My Orders** pada navigation bar atas. Klik tombol '📍 Track Order' untuk melihat live tracking!`
+  if (lower.includes('order') || lower.includes('pesan') || lower.includes('lacak') || lower.includes('track') || lower.includes('status')) {
+    return isEn
+      ? `📦 You can check your active orders and live transit status directly in the **Orders** tab on the top navigation bar. Click '📍 Track Order' anytime!`
+      : `📦 Anda dapat mengecek detail dan status pesanan langsung di menu **Pesanan** pada navigation bar atas. Klik tombol '📍 Lacak Pesanan' untuk melihat live tracking!`
   }
-  if (lower.includes('halo') || lower.includes('hai') || lower.includes('hi') || lower.includes('help') || lower.includes('bantuan')) {
-    return `👋 Halo ${userName}! Saya adalah **SE-AI Shopping Assistant**. Ada produk atau penawaran promo yang bisa saya bantu carikan untuk Anda hari ini?`
+  if (lower.includes('halo') || lower.includes('hai') || lower.includes('hi') || lower.includes('hello') || lower.includes('help') || lower.includes('bantuan')) {
+    return isEn
+      ? `👋 Hello ${userName}! I am your **SE-AI Shopping Assistant**. What products or deals can I help you find today?`
+      : `👋 Halo ${userName}! Saya adalah **SE-AI Shopping Assistant**. Ada produk atau penawaran promo yang bisa saya bantu carikan untuk Anda hari ini?`
   }
-  return `🤖 Terima kasih atas pertanyaannya! Tim kurator SEMARKET siap membantu. Anda juga bisa mencoba kode promo **SEMARKET10** untuk diskon instan belanja Anda hari ini!`
+  return isEn
+    ? `🤖 Thanks for your question! The SEMARKET team is here to help. Feel free to use promo code **SEMARKET10** for an instant shopping discount today!`
+    : `🤖 Terima kasih atas pertanyaannya! Tim kurator SEMARKET siap membantu. Anda juga bisa mencoba kode promo **SEMARKET10** untuk diskon instan belanja Anda hari ini!`
 }
 
 export default function LiveChat({ user }) {
+  const { lang, t } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
   const [isTyping, setIsTyping] = useState(false)
   const scrollRef = useRef(null)
+
+  const suggestions = lang === 'en' ? AI_SUGGESTIONS_EN : AI_SUGGESTIONS_ID
 
   // Load messages from localStorage
   const loadMessages = () => {
@@ -81,7 +106,7 @@ export default function LiveChat({ user }) {
     // Trigger AI response after short delay
     setIsTyping(true)
     setTimeout(() => {
-      const replyText = getAIResponse(text, user.name.split(' ')[0])
+      const replyText = getAIResponse(text, user.name.split(' ')[0], lang)
       const botMsg = {
         id: Date.now() + 1,
         userId: user._id,
@@ -94,7 +119,7 @@ export default function LiveChat({ user }) {
       localStorage.setItem('nex_chat_messages', JSON.stringify([...curMessages, botMsg]))
       setIsTyping(false)
       loadMessages()
-    }, 700)
+    }, 600)
   }
 
   const handleSubmit = (e) => {
@@ -115,14 +140,14 @@ export default function LiveChat({ user }) {
                 </div>
                 <div>
                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-sm font-black uppercase tracking-wider leading-none">SE-AI ASSISTANT</h4>
+                      <h4 className="text-sm font-black uppercase tracking-wider leading-none">{t('aiAssistant')}</h4>
                       <span className="bg-neoPink text-white text-[9px] font-black px-1.5 py-0.2 border border-black shadow-neo-sm">
                         AI BOT
                       </span>
                    </div>
                    <div className="flex items-center gap-1.5 mt-1">
                       <div className="w-2 h-2 bg-neoGreen border border-black animate-pulse"></div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-black/80">Neural Core Ready</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-black/80">{t('aiOnline')}</span>
                    </div>
                 </div>
              </div>
@@ -136,10 +161,10 @@ export default function LiveChat({ user }) {
 
           {/* Quick AI Suggestions */}
           <div className="p-2.5 bg-neoCream dark:bg-zinc-800 border-b-3 border-black overflow-x-auto no-scrollbar flex gap-2 whitespace-nowrap">
-            {AI_SUGGESTIONS.map(s => (
+            {suggestions.map(s => (
               <button
                 key={s}
-                className="px-2.5 py-1 bg-white dark:bg-zinc-900 border-2 border-black text-[10px] font-black uppercase tracking-wider shadow-neo-sm hover:bg-yellow-100 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+                className="px-2.5 py-1 bg-white dark:bg-zinc-900 border-2 border-black text-[10px] font-black uppercase tracking-wider shadow-neo-sm hover:bg-yellow-100 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-black dark:text-white"
                 onClick={() => sendMsg(s)}
               >
                 {s}
@@ -155,10 +180,20 @@ export default function LiveChat({ user }) {
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-4">
                  <div className="text-5xl mb-3">🤖</div>
-                 <div className="bg-neoYellow border-3 border-black p-4 shadow-neo text-xs font-black uppercase max-w-xs">
-                    Halo {user.name.split(' ')[0]}!<br/>
-                    Saya adalah <span className="underline decoration-2">SE-AI Assistant</span>.<br/>
-                    Tanyakan apa saja seputar promo, produk, atau pesanan Anda!
+                 <div className="bg-neoYellow border-3 border-black p-4 shadow-neo text-xs font-black uppercase max-w-xs text-black">
+                    {lang === 'en' ? (
+                      <>
+                        Hello {user.name.split(' ')[0]}!<br/>
+                        I am your <span className="underline decoration-2">SE-AI Assistant</span>.<br/>
+                        Ask me anything about deals, shipping, or your orders!
+                      </>
+                    ) : (
+                      <>
+                        Halo {user.name.split(' ')[0]}!<br/>
+                        Saya adalah <span className="underline decoration-2">SE-AI Assistant</span>.<br/>
+                        Tanyakan apa saja seputar promo, produk, atau pesanan Anda!
+                      </>
+                    )}
                  </div>
               </div>
             ) : (
@@ -190,7 +225,7 @@ export default function LiveChat({ user }) {
               <div className="flex justify-start">
                 <div className="bg-neoCream dark:bg-zinc-800 border-2 border-black p-2.5 shadow-neo-sm flex items-center gap-2">
                   <span className="text-sm animate-spin">⚡</span>
-                  <span className="text-[10px] font-black uppercase text-gray-500">AI sedang mengetik…</span>
+                  <span className="text-[10px] font-black uppercase text-gray-500">{t('aiTyping')}</span>
                 </div>
               </div>
             )}
@@ -201,7 +236,7 @@ export default function LiveChat({ user }) {
             <div className="flex gap-2">
                <input 
                  type="text" 
-                 placeholder="Tanya AI seputar promo, ongkir, produk…"
+                 placeholder={t('aiPlaceholder')}
                  className="flex-1 bg-neoCream dark:bg-zinc-800 border-2 border-black dark:border-white px-3 py-2 text-xs font-bold outline-none text-black dark:text-white shadow-neo-sm"
                  value={message}
                  onChange={e => setMessage(e.target.value)}
@@ -210,7 +245,7 @@ export default function LiveChat({ user }) {
                  type="submit"
                  className="px-4 py-2 bg-neoYellow hover:bg-yellow-300 text-black border-2 border-black font-black text-xs uppercase shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-1"
                >
-                 <span>KIRIM</span>
+                 <span>{t('aiSend')}</span>
                  <span>➔</span>
                </button>
             </div>
@@ -226,7 +261,7 @@ export default function LiveChat({ user }) {
       >
         <span className="text-2xl group-hover:rotate-12 transition-transform">🤖</span>
         <span className="text-xs uppercase tracking-wider font-black hidden sm:inline">
-          {isOpen ? 'TUTUP AI' : 'AI CHAT'}
+          {isOpen ? t('aiClose') : t('aiLauncher')}
         </span>
         {!isOpen && (
           <span className="w-2.5 h-2.5 bg-neoGreen border border-black animate-pulse rounded-full"></span>

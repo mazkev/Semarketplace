@@ -1,19 +1,22 @@
 import React from 'react'
+import { useLanguage } from '../i18n'
 
 export default function FrontFooter({ setPage }) {
+  const { t } = useLanguage()
+
   return (
     <footer className="border-t-4 border-black dark:border-white bg-neoCream dark:bg-zinc-950 mt-20 font-sans select-none">
       {/* Top Banner Marquee */}
       <div className="bg-black text-neoYellow border-b-3 border-black py-2 overflow-hidden font-black text-xs uppercase tracking-widest">
         <div className="animate-ticker flex gap-8 whitespace-nowrap">
-          <span>★ 100% SECURE CHECKOUT</span>
-          <span>⚡ INSTANT COURIER DISPATCH</span>
-          <span>★ FREE SHIPPING ACROSS INDONESIA</span>
-          <span>⚡ 24/7 DEDICATED SUPPORT</span>
-          <span>★ 100% SECURE CHECKOUT</span>
-          <span>⚡ INSTANT COURIER DISPATCH</span>
-          <span>★ FREE SHIPPING ACROSS INDONESIA</span>
-          <span>⚡ 24/7 DEDICATED SUPPORT</span>
+          <span>{t('ticker4')}</span>
+          <span>{t('ticker2')}</span>
+          <span>{t('ticker3')}</span>
+          <span>{t('ticker1')}</span>
+          <span>{t('ticker4')}</span>
+          <span>{t('ticker2')}</span>
+          <span>{t('ticker3')}</span>
+          <span>{t('ticker1')}</span>
         </div>
       </div>
 
@@ -29,7 +32,7 @@ export default function FrontFooter({ setPage }) {
                <span className="text-2xl font-black tracking-tighter uppercase text-black">SE-MARKET</span>
              </div>
              <p className="text-gray-700 dark:text-gray-300 text-xs font-bold leading-relaxed">
-               The premier high-velocity Neo-Brutalist marketplace. Direct deals, verified quality goods, and lightning-fast fulfillment.
+               {t('footerDesc')}
              </p>
              <div className="flex flex-wrap gap-2 pt-2">
                 <span className="bg-neoPink text-white border-2 border-black px-2.5 py-0.5 text-[9px] font-black uppercase shadow-neo-sm">
@@ -44,14 +47,14 @@ export default function FrontFooter({ setPage }) {
           {/* Navigation */}
           <div>
             <div className="inline-block bg-neoYellow border-2 border-black px-2.5 py-1 text-xs font-black uppercase tracking-wider shadow-neo-sm mb-4 text-black">
-              EXPLORE
+              {t('explore')}
             </div>
             <ul className="space-y-2">
               {[
-                { label: 'Storefront Catalog', target: 'shop' },
-                { label: 'Flash Sale Deals', target: 'shop' },
-                { label: 'My Order History', target: 'orders' },
-                { label: 'Saved Wishlist', target: 'wishlist' }
+                { label: t('store'), target: 'shop' },
+                { label: t('flashSale'), target: 'shop' },
+                { label: t('ordersHistory'), target: 'orders' },
+                { label: t('wishlist'), target: 'wishlist' }
               ].map((item) => (
                 <li key={item.label}>
                   <button 
@@ -69,10 +72,10 @@ export default function FrontFooter({ setPage }) {
           {/* Payment Badges */}
           <div>
             <div className="inline-block bg-neoCyan border-2 border-black px-2.5 py-1 text-xs font-black uppercase tracking-wider shadow-neo-sm mb-4 text-black">
-              PAYMENT NODES
+              {t('paymentNodes')}
             </div>
             <p className="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-3">
-              Encrypted settlements supported via instant banking &amp; QRIS:
+              {t('paymentDesc')}
             </p>
             <div className="grid grid-cols-3 gap-2">
               {['BCA', 'MANDIRI', 'BNI', 'BRI', 'QRIS', 'GOPAY'].map(method => (
@@ -89,12 +92,12 @@ export default function FrontFooter({ setPage }) {
               VIP DROPS
             </div>
             <h4 className="text-xs font-black text-black dark:text-white uppercase tracking-wider mb-1">
-              Secret Vouchers
+              {t('secretVouchers')}
             </h4>
             <p className="text-gray-600 dark:text-gray-400 text-[11px] font-bold mb-3">
-              Subscribe to unlock flash sale codes &amp; 20% off coupons.
+              {t('voucherDesc')}
             </p>
-            <form onSubmit={e => { e.preventDefault(); alert('Subscribed to SE-MARKET Drops!') }} className="space-y-2">
+            <form onSubmit={e => { e.preventDefault(); alert('Subscribed to SE-MARKET VIP Drops!') }} className="space-y-2">
               <input 
                 type="email" 
                 placeholder="YOUR EMAIL" 
@@ -105,7 +108,7 @@ export default function FrontFooter({ setPage }) {
                 type="submit"
                 className="w-full bg-neoYellow hover:bg-yellow-300 text-black border-2 border-black py-2 font-black text-xs uppercase tracking-wider shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
               >
-                UNLOCK DEALS ➔
+                {t('unlockDeals')}
               </button>
             </form>
           </div>
@@ -115,12 +118,12 @@ export default function FrontFooter({ setPage }) {
         <div className="pt-8 border-t-3 border-black dark:border-white flex flex-col md:flex-row justify-between items-center gap-4">
            <div className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-neoGreen border border-black inline-block"></span>
-              <span>&copy; 2026 SEMARKETPLACE • ALL RIGHTS RESERVED</span>
+              <span>{t('copyright')}</span>
            </div>
            
            <div className="flex gap-4">
-              <button onClick={() => setPage('shop')} className="text-xs font-black uppercase tracking-wider text-black dark:text-white hover:underline">Home</button>
-              <button onClick={() => setPage('orders')} className="text-xs font-black uppercase tracking-wider text-black dark:text-white hover:underline">Orders</button>
+              <button onClick={() => setPage('shop')} className="text-xs font-black uppercase tracking-wider text-black dark:text-white hover:underline">{t('store')}</button>
+              <button onClick={() => setPage('orders')} className="text-xs font-black uppercase tracking-wider text-black dark:text-white hover:underline">{t('orders')}</button>
               <a href="#/backOffice" className="text-xs font-black uppercase tracking-wider text-neoPink hover:underline">Admin Console</a>
            </div>
 

@@ -3,12 +3,14 @@ import ProductCard from './ProductCard'
 import Banner from './Banner'
 import Skeleton from '../components/Skeleton'
 import { CATEGORIES, formatPrice } from '../utils'
+import { useLanguage } from '../i18n'
 
 export default function Storefront({ 
   products, loading, onAddToCart, search, 
   activeCategory, setActiveCategory, onSelectProduct, 
   wishlist = [], onToggleWishlist, title: customTitle 
 }) {
+  const { t } = useLanguage()
   const [sort, setSort] = useState('newest')
   const [timeLeft, setTimeLeft] = useState({ h: 2, m: 45, s: 12 })
 
@@ -40,10 +42,10 @@ export default function Storefront({
   }, [products, search, activeCategory, customTitle, sort])
 
   const title = customTitle || (search
-    ? `SEARCH: "${search}"`
+    ? `${t('searchBtn')}: "${search}"`
     : activeCategory !== 'All'
     ? activeCategory.toUpperCase()
-    : 'EXPLORE CATALOG')
+    : t('allProducts').toUpperCase())
 
   const flashSaleProducts = products.filter(p => p.isFlashSale).slice(0, 8)
 
@@ -69,14 +71,14 @@ export default function Storefront({
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
-                      FLASH SALE DROP
+                      {t('flashSale')}
                     </h2>
                     <span className="bg-neoPink text-white border-2 border-black px-2 py-0.5 text-xs font-black rounded rotate-1 shadow-neo-sm">
                       HOT
                     </span>
                   </div>
                   <p className="text-xs font-bold uppercase tracking-wider text-zinc-800 mt-0.5">
-                    LIMITED QUANTITIES • ONCE GONE, IT'S GONE
+                    {t('countdown')}
                   </p>
                 </div>
               </div>
@@ -192,16 +194,16 @@ export default function Storefront({
           </div>
 
           <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border-3 border-black dark:border-white px-4 py-2 rounded-xl shadow-neo-sm">
-            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">SORT BY:</span>
+            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{t('sortBy')}</span>
             <select 
               value={sort} 
               onChange={(e) => setSort(e.target.value)}
               className="bg-transparent font-black text-xs uppercase outline-none cursor-pointer text-black dark:text-white"
             >
-              <option value="newest" className="bg-white dark:bg-zinc-900 text-black dark:text-white">LATEST DROPS</option>
-              <option value="price-low" className="bg-white dark:bg-zinc-900 text-black dark:text-white">PRICE: LOW TO HIGH</option>
-              <option value="price-high" className="bg-white dark:bg-zinc-900 text-black dark:text-white">PRICE: HIGH TO LOW</option>
-              <option value="rating" className="bg-white dark:bg-zinc-900 text-black dark:text-white">TOP RATED</option>
+              <option value="newest" className="bg-white dark:bg-zinc-900 text-black dark:text-white">{t('sortFeatured')}</option>
+              <option value="price-low" className="bg-white dark:bg-zinc-900 text-black dark:text-white">{t('sortPriceLow')}</option>
+              <option value="price-high" className="bg-white dark:bg-zinc-900 text-black dark:text-white">{t('sortPriceHigh')}</option>
+              <option value="rating" className="bg-white dark:bg-zinc-900 text-black dark:text-white">{t('sortRating')}</option>
             </select>
           </div>
         </div>

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { formatPrice } from '../utils'
+import { useLanguage } from '../i18n'
 
 export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout, appliedCoupon, onApplyCoupon }) {
+  const { t } = useLanguage()
   const [couponCode, setCouponCode] = useState('')
   const [couponError, setCouponError] = useState('')
 
@@ -47,9 +49,9 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
               🛒
             </div>
             <div>
-              <h2 className="text-xl font-black uppercase tracking-tight leading-none">YOUR CART</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight leading-none">{t('cartTitle')}</h2>
               <span className="text-[10px] font-black uppercase tracking-wider bg-black text-white px-2 py-0.5 rounded mt-1 inline-block">
-                {count} ITEMS TOTAL
+                {count} {t('orderItems')}
               </span>
             </div>
           </div>
@@ -65,7 +67,7 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
         {/* Free Shipping Notice */}
         {cart.length > 0 && (
           <div className="px-5 py-2.5 bg-neoCyan text-black border-b-3 border-black font-black text-xs uppercase tracking-wider flex items-center justify-between">
-            <span>⚡ FREE NATIONWIDE SHIPPING</span>
+            <span>⚡ {t('freeShipping')}</span>
             <span className="bg-black text-white px-1.5 py-0.5 rounded text-[10px]">ACTIVE</span>
           </div>
         )}
@@ -76,16 +78,16 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
             <div className="flex flex-col items-center justify-center h-full text-center py-20">
               <div className="text-7xl mb-4">🛒</div>
               <h3 className="text-xl font-black text-black dark:text-white uppercase tracking-tight mb-2">
-                YOUR CART IS EMPTY
+                {t('cartEmpty')}
               </h3>
               <p className="text-xs font-bold text-zinc-500 max-w-xs mb-6">
-                Discover trending electronics, fashion, and streetwear items now.
+                {t('cartEmptyDesc')}
               </p>
               <button 
                 className="px-6 py-3 bg-neoYellow text-black border-3 border-black rounded-xl font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
                 onClick={onClose}
               >
-                START SHOPPING →
+                {t('store')} →
               </button>
             </div>
           ) : (
@@ -208,32 +210,32 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
           <div className="p-5 border-t-4 border-black dark:border-white bg-white dark:bg-zinc-900 space-y-4">
             <div className="space-y-1.5 text-xs font-bold text-zinc-600 dark:text-zinc-400">
               <div className="flex justify-between">
-                <span>SUBTOTAL</span>
+                <span>{t('subtotal')}</span>
                 <span className="font-black text-black dark:text-white">{formatPrice(subtotal)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-neoPink font-black">
-                  <span>DISCOUNT</span>
+                  <span>{t('discount')}</span>
                   <span>-{formatPrice(discount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span>ESTIMATED TAX (10%)</span>
+                <span>{t('tax')}</span>
                 <span className="font-black text-black dark:text-white">{formatPrice(tax)}</span>
               </div>
               <div className="flex justify-between text-neoGreen font-black">
-                <span>SHIPPING</span>
-                <span>FREE (RP 0)</span>
+                <span>{t('shipping')}</span>
+                <span>{t('freeShipping')}</span>
               </div>
             </div>
 
             <div className="border-t-2 border-dashed border-black/20 dark:border-white/20 pt-3 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block">TOTAL PAYABLE</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400 block">{t('totalPayable')}</span>
                 <span className="text-2xl font-black text-black dark:text-white tracking-tight">{formatPrice(total)}</span>
               </div>
               <span className="bg-neoYellow text-black border-2 border-black px-2 py-0.5 rounded text-[10px] font-black uppercase shadow-neo-sm">
-                INSTANT PROCESS
+                INSTANT
               </span>
             </div>
             
@@ -242,8 +244,7 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
               className="w-full py-4 bg-neoGreen hover:bg-emerald-400 text-black border-3 border-black dark:border-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-neo hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2" 
               onClick={onCheckout}
             >
-              <span>CHECKOUT ORDER NOW</span>
-              <span className="text-lg">→</span>
+              <span>{t('checkoutNow')}</span>
             </button>
           </div>
         )}

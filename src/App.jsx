@@ -3,6 +3,7 @@ import './index.css'
 
 import { useLocalStorage } from './hooks'
 import { DEFAULT_ADMINS } from './utils'
+import { LanguageProvider } from './i18n'
 
 import CustomerAuth from './auth/CustomerAuth'
 import AdminAuth    from './auth/AdminAuth'
@@ -20,7 +21,7 @@ function ensureAdmins() {
 }
 ensureAdmins()
 
-export default function App() {
+function AppContent() {
   const [path, setPath] = useState(window.location.hash || '#/')
   const [customerSession, setCustomerSession]   = useLocalStorage('nex_customer_session', null)
   const [adminSession, setAdminSession]         = useLocalStorage('nex_admin_session', null)
@@ -38,12 +39,10 @@ export default function App() {
   }, [])
 
   const navigate = (newPath) => {
-    // Ensure newPath starts with #
     const hashPath = newPath.startsWith('#') ? newPath : `#${newPath}`
     window.location.hash = hashPath
     setPath(hashPath)
   }
-
 
   // --- ADMIN ROUTE ---
   if (path.startsWith('#/backOffice')) {
@@ -86,3 +85,10 @@ export default function App() {
   )
 }
 
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  )
+}
