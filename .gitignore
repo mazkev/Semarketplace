@@ -26,3 +26,13 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+backend/server.exe
+backend/data/*.db
+

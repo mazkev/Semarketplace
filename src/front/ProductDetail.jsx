@@ -40,6 +40,10 @@ export default function ProductDetail({
                 src={product.image} 
                 alt={product.name} 
                 className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transform transition-transform duration-700 group-hover:scale-110"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+                }}
               />
               {discountPct > 0 && (
                 <div className="absolute top-0 right-0 bg-rose-500 text-white px-4 py-2 rounded-2xl font-black text-xs shadow-xl animate-pulse uppercase tracking-widest">

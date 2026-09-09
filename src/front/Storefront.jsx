@@ -110,7 +110,15 @@ export default function Storefront({
                       onClick={() => onSelectProduct(p)}
                     >
                        <div className="relative aspect-[4/5] rounded-[20px] overflow-hidden mb-3 bg-slate-50 dark:bg-slate-800">
-                          <img src={p.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={p.name} />
+                          <img 
+                            src={p.image} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                            alt={p.name} 
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+                            }}
+                          />
                           {p.originalPrice && p.price && (
                             <div className="absolute top-3 right-3 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg shadow-lg">
                               -{Math.round((1 - p.price / p.originalPrice) * 100)}%

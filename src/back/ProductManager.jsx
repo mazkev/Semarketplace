@@ -160,7 +160,15 @@ export default function ProductManager({ products, setProducts, showToast }) {
                     <td className="px-8 py-5">
                       <div className="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden border border-gray-100 shadow-inner p-1 group-hover:scale-105 transition-transform">
                         {p.image
-                          ? <img src={p.image} alt={p.name} className="w-full h-full object-cover rounded-lg" />
+                          ? <img 
+                              src={p.image} 
+                              alt={p.name} 
+                              className="w-full h-full object-cover rounded-lg" 
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+                              }}
+                            />
                           : <div className="flex items-center justify-center h-full text-xl grayscale opacity-30">📦</div>
                         }
                       </div>
@@ -253,7 +261,15 @@ export default function ProductManager({ products, setProducts, showToast }) {
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Asset Visualization</label>
                   <div className="relative group aspect-video rounded-3xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-shopee hover:bg-shopee/5">
                     {form.image ? (
-                      <img src={form.image} alt="Asset Visualization" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" />
+                      <img 
+                        src={form.image} 
+                        alt="Asset Visualization" 
+                        className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+                        }}
+                      />
                     ) : (
                       <div className="text-center p-10 opacity-30 group-hover:opacity-100 transition-opacity">
                          <div className="text-5xl mb-4 grayscale">🖼️</div>

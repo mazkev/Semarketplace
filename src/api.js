@@ -11,12 +11,12 @@ const DEFAULT_PRODUCTS = [
     price: 1095000, 
     originalPrice: 1500000, 
     category: "Men's clothing", 
-    image: 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg', 
+    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80', 
     stock: 15, 
     rating: 3.9, 
     sold: 120,
     isFlashSale: true,
-    description: 'Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve, your everyday'
+    description: 'Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve.'
   },
   { 
     _id: '2', 
@@ -24,11 +24,11 @@ const DEFAULT_PRODUCTS = [
     price: 223000, 
     originalPrice: 350000, 
     category: "Men's clothing", 
-    image: 'https://fakestoreapi.com/img/71-3HjGNDUL._AC_SY879._SX._UX._SY._UY_.jpg', 
+    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80', 
     stock: 25, 
     rating: 4.1, 
     sold: 259,
-    description: 'Slim-fitting style, contrast raglan long sleeve, three-button henley placket, light weight & soft fabric for breathable and comfortable wearing.'
+    description: 'Slim-fitting style, contrast raglan long sleeve, three-button henley placket, light weight & soft fabric.'
   },
   { 
     _id: '3', 
@@ -36,12 +36,12 @@ const DEFAULT_PRODUCTS = [
     price: 559900, 
     originalPrice: 800000, 
     category: "Men's clothing", 
-    image: 'https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg', 
+    image: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?w=600&auto=format&fit=crop&q=80', 
     stock: 12, 
     rating: 4.7, 
     sold: 500,
     isFlashSale: true,
-    description: 'Great outerwear jackets for Spring/Autumn/Winter, suitable for many occasions, such as working, hiking, camping, mountain/rock climbing, cycling, traveling or other outdoors.'
+    description: 'Great outerwear jackets for Spring/Autumn/Winter, suitable for many occasions.'
   },
   { 
     _id: '4', 
@@ -49,23 +49,23 @@ const DEFAULT_PRODUCTS = [
     price: 159900, 
     originalPrice: 250000, 
     category: "Men's clothing", 
-    image: 'https://fakestoreapi.com/img/71YXzeWusdL._AC_UY879_.jpg', 
+    image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=80', 
     stock: 45, 
     rating: 2.1, 
     sold: 430,
-    description: 'The color could be slightly different between on the screen and in practice. / Please note that body builds vary by person.'
+    description: 'Classic comfortable fit shirt for daily casual use.'
   },
   { 
     _id: '5', 
-    name: "John Hardy Women's Legends Naga Gold & Silver Dragon Station Chain Bracelet", 
+    name: "John Hardy Women's Naga Dragon Station Bracelet", 
     price: 6950000, 
     originalPrice: 8500000, 
     category: 'Jewelery', 
-    image: 'https://fakestoreapi.com/img/71pWzhdJNwL._AC_UL640_QL65_ML3_.jpg', 
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&auto=format&fit=crop&q=80', 
     stock: 5, 
     rating: 4.6, 
     sold: 40,
-    description: "From our Legends Collection, the Naga was inspired by the mythical water dragon that protects the ocean's pearl. Wear facing inward to be bestowed with love and abundance, or outward for protection."
+    description: "From our Legends Collection, handcrafted silver dragon bracelet."
   },
   { 
     _id: '6', 
@@ -73,11 +73,11 @@ const DEFAULT_PRODUCTS = [
     price: 1680000, 
     originalPrice: 2200000, 
     category: 'Jewelery', 
-    image: 'https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg', 
+    image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&auto=format&fit=crop&q=80', 
     stock: 10, 
     rating: 3.9, 
     sold: 70,
-    description: 'Satisfaction Guaranteed. Return or exchange any order within 30 days. Designed and sold by Hafeez Center in the United States.'
+    description: 'Satisfaction Guaranteed. Return or exchange any order within 30 days.'
   },
   { 
     _id: '7', 
@@ -85,48 +85,49 @@ const DEFAULT_PRODUCTS = [
     price: 99900, 
     originalPrice: 150000, 
     category: 'Jewelery', 
-    image: 'https://fakestoreapi.com/img/71YAIFU48IL._AC_UL640_QL65_ML3_.jpg', 
+    image: 'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=600&auto=format&fit=crop&q=80', 
     stock: 100, 
     rating: 3.0, 
     sold: 400,
-    description: 'Classic Created Wedding Engagement Solitaire Diamond Promise Ring for Her. Gifts to symbolize your love on your special day.'
+    description: 'Classic Created Wedding Engagement Solitaire Diamond Promise Ring for Her.'
   },
   { 
     _id: '8', 
-    name: 'Pierced Owl Rose Gold Plated Stainless Steel Double', 
-    price: 109900, 
-    originalPrice: 200000, 
-    category: 'Jewelery', 
-    image: 'https://fakestoreapi.com/img/51UDEzMJVpL._AC_UL640_QL65_ML3_.jpg', 
-    stock: 30, 
-    rating: 1.9, 
-    sold: 100,
-    description: 'Rose Gold Plated Double Flared Tunnel Plug Earrings. Made of 316L Stainless Steel.'
-  },
-  { 
-    _id: '9', 
-    name: 'WD 2TB Elements Portable External Hard Drive - USB 3.0', 
+    name: 'WD 2TB Elements Portable External Hard Drive', 
     price: 640000, 
     originalPrice: 900000, 
     category: 'Electronics', 
-    image: 'https://fakestoreapi.com/img/61IBBVJvSDL._AC_SY879_.jpg', 
+    image: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=600&auto=format&fit=crop&q=80', 
     stock: 50, 
     rating: 3.3, 
     sold: 203,
     isFlashSale: true,
-    description: 'USB 3.0 and USB 2.0 Compatibility Fast data transfers Improve PC Performance High Capacity; Compatibility Formatted NTFS for Windows 10, Windows 8.1, Windows 7; Reformatting may be required for other operating systems.'
+    description: 'USB 3.0 and USB 2.0 Compatibility Fast data transfers.'
   },
   { 
-    _id: '10', 
-    name: 'SanDisk SSD PLUS 1TB Internal SSD - SATA III 6 Gb/s', 
+    _id: '9', 
+    name: 'SanDisk SSD PLUS 1TB Internal SSD', 
     price: 1090000, 
     originalPrice: 1400000, 
     category: 'Electronics', 
-    image: 'https://fakestoreapi.com/img/61U7T1koQqL._AC_SX679_.jpg', 
+    image: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=600&auto=format&fit=crop&q=80', 
     stock: 35, 
     rating: 2.9, 
     sold: 470,
-    description: 'Easy upgrade for faster boot-up, shutdown, application load and response (As compared to 5400 RPM SATA 2.5” hard drive; Based on published specifications and internal benchmarking tests using PCMark vantage scores) Boosts burst write performance.'
+    description: 'Easy upgrade for faster boot-up, shutdown, application load and response.'
+  },
+  { 
+    _id: '10', 
+    name: 'Silicon Power 256GB SSD 3D NAND A55', 
+    price: 350000, 
+    originalPrice: 500000, 
+    category: 'Electronics', 
+    image: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=600&auto=format&fit=crop&q=80', 
+    stock: 60, 
+    rating: 4.8, 
+    sold: 890,
+    isFlashSale: true,
+    description: '3D NAND flash are applied to deliver high transfer speeds.'
   }
 ];
 
@@ -207,7 +208,34 @@ async function initStorage() {
   return initPromise;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
 export async function apiFetch(endpoint, options = {}) {
+  if (!USE_MOCK) {
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${API_BASE_URL}${cleanEndpoint}`;
+
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    };
+
+    const res = await fetch(url, {
+      ...options,
+      headers
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const errMsg = (data && (data.message || data.error)) || `Request failed with status ${res.status}`;
+      throw new Error(errMsg);
+    }
+
+    return data;
+  }
+
   await initStorage();
   await new Promise(r => setTimeout(r, 300));
   const method = options.method || 'GET';

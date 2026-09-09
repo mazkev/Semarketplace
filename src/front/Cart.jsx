@@ -96,7 +96,15 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
                 >
                   <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-2xl overflow-hidden shrink-0 border border-slate-100 dark:border-slate-700">
                     {item.image
-                      ? <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      ? <img 
+                          src={item.image} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+                          }}
+                        />
                       : <div className="flex items-center justify-center h-full text-2xl opacity-10">💎</div>
                     }
                   </div>
