@@ -8,15 +8,13 @@ RUN apk add --no-cache ca-certificates tzdata git
 
 ENV GOPROXY=https://proxy.golang.org,direct
 
-# Cache go modules
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy backend source code
+# Copy source code
 COPY . .
 
-# Build lightweight static binary without CGO
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server .
+# Normalize go directive to 1.22, tidy modules, and compile
+RUN sed -i -E 's/^go 1\.[0-9]+(\.[0-9]+)?/go 1.22/' go.mod && \
+    go mod tidy && \
+    CGO_ENABLED=0 GOOS=linux go build -v -ldflags="-w -s" -o server .
 
 # Minimal production runtime
 FROM alpine:latest
