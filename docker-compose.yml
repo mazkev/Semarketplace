@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: semarketplace-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    volumes:
+      - backend-data:/app/data
+    networks:
+      - semarket-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+        VITE_USE_MOCK: "false"
+    container_name: semarketplace-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - semarket-network
+
+volumes:
+  backend-data:
+    driver: local
+
+networks:
+  semarket-network:
+    driver: bridge

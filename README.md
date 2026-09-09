@@ -53,15 +53,33 @@ Semarketplace is a high-performance, aesthetically premium e-commerce marketplac
    ```
    Open `http://localhost:5173` to view the app.
 
-## 📦 Deployment
+## 🐳 Docker Deployment (Recommended)
 
-Since this is a frontend-only application, it can be deployed to any static hosting service for free.
+You can run both Frontend and Golang Backend together with persistent SQLite database using Docker Compose:
 
-### Deploy to Vercel / Netlify
+```bash
+docker compose up -d --build
+```
+
+- **Frontend App**: `http://localhost:3000`
+- **Backend API**: `http://localhost:8080/api`
+- **Reverse Proxy**: Nginx automatically proxies `/api/` requests internally to the Go backend container.
+- **Data Persistence**: Database is stored in a persistent Docker volume `backend-data`.
+
+To stop containers:
+```bash
+docker compose down
+```
+
+## 📦 Cloud Deployment
+
+### Deploy to Vercel / Netlify (Frontend)
 1. Connect your GitHub repository to Vercel or Netlify.
 2. Build Command: `npm run build`
 3. Output Directory: `dist`
-4. Add environment variables if needed (though the app has defaults).
+4. Add environment variables:
+   - `VITE_API_URL`: URL of your deployed Go backend (e.g. `https://your-backend.onrender.com/api`)
+   - `VITE_USE_MOCK`: `false` (or `true` for standalone serverless mode)
 
 ### Deploy to GitHub Pages
 1. Install the gh-pages package: `npm install gh-pages --save-dev`
