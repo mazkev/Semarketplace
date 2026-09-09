@@ -10,14 +10,13 @@ ENV GOPROXY=https://proxy.golang.org,direct
 
 # Cache go modules
 COPY go.mod go.sum ./
-RUN sed -i 's/^go 1\.[0-9]\+/go 1.22/' go.mod && go mod download
+RUN go mod download
 
 # Copy backend source code
 COPY . .
 
 # Build lightweight static binary without CGO
-RUN sed -i 's/^go 1\.[0-9]\+/go 1.22/' go.mod && \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server .
 
 # Minimal production runtime
 FROM alpine:latest
