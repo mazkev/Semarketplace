@@ -1,23 +1,26 @@
 # Multi-stage build for Go Backend
-FROM golang:1.24-alpine AS builder
+FROM golang:alpine AS builder
 
 WORKDIR /app
 
-# Install ca-certificates and tzdata
-RUN apk add --no-cache ca-certificates tzdata
+# Install build dependencies
+RUN apk add --no-cache ca-certificates tzdata git
+
+ENV GOPROXY=https://proxy.golang.org,direct
 
 # Cache go modules
 COPY go.mod go.sum ./
-RUN go mod download
+RUN sed -i 's/^go 1\.[0-9]\+/go 1.22/' go.mod && go mod download
 
 # Copy backend source code
 COPY . .
 
 # Build lightweight static binary without CGO
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server main.go
+RUN sed -i 's/^go 1\.[0-9]\+/go 1.22/' go.mod && \
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server main.go
 
 # Minimal production runtime
-FROM alpine:3.20
+FROM alpine:latest
 
 WORKDIR /app
 
@@ -32,3 +35,4 @@ EXPOSE 8080
 VOLUME ["/app/data"]
 
 CMD ["/app/server"]
+
