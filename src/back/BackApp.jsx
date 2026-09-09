@@ -78,38 +78,38 @@ export default function BackApp({ admin, onLogout, transactions: propTransaction
   }
 
   return (
-    <div className="flex bg-slate-50 dark:bg-slate-950 min-h-screen font-sans selection:bg-indigo-600 selection:text-white">
+    <div className="flex bg-neoCream dark:bg-zinc-950 min-h-screen font-sans selection:bg-neoYellow selection:text-black">
       {/* Sidebar */}
-      <aside className="w-80 bg-slate-900 flex flex-col shrink-0 sticky top-0 h-screen z-50 shadow-[20px_0_50px_rgba(0,0,0,0.1)]">
-        <div className="p-10 pb-12">
-          <div className="flex items-center gap-4 cursor-pointer group">
-            <div className="w-14 h-14 bg-white/5 rounded-[20px] flex items-center justify-center text-3xl group-hover:bg-indigo-600 transition-all duration-500 shadow-2xl border border-white/5">⚙️</div>
+      <aside className="w-72 bg-white dark:bg-zinc-900 border-r-4 border-black dark:border-white flex flex-col shrink-0 sticky top-0 h-screen z-50 shadow-neo-lg">
+        <div className="p-6 border-b-4 border-black dark:border-white bg-neoYellow dark:bg-zinc-900">
+          <div className="flex items-center gap-3 cursor-pointer group">
+            <div className="w-12 h-12 bg-black text-white border-2 border-black flex items-center justify-center text-2xl font-black shadow-neo-sm group-hover:rotate-6 transition-transform">⚙️</div>
             <div>
-              <div className="text-xl font-black text-white tracking-tighter leading-none uppercase">SeMarketplace</div>
-              <div className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.4em] mt-2 opacity-80">Back Office</div>
+              <div className="text-xl font-black text-black dark:text-white tracking-tighter leading-none uppercase">SEMARKET</div>
+              <div className="text-[10px] font-black text-black/70 dark:text-neoCyan uppercase tracking-widest mt-1">BACK OFFICE ⚡</div>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 px-6 space-y-2">
-          <div className="px-4 text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6">Master Control</div>
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar">
+          <div className="px-2 text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">COMMAND DECK</div>
           {pages.map(p => (
             <button
               key={p.id}
-              className={`w-full flex items-center gap-5 px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all group ${
+              className={`w-full flex items-center gap-4 px-4 py-3 border-3 border-black text-xs font-black uppercase tracking-wider transition-all ${
                 page === p.id 
-                  ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-500/40 transform translate-x-2' 
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-neoCyan text-black shadow-neo translate-x-1' 
+                  : 'bg-white dark:bg-zinc-800 text-black dark:text-white shadow-neo-sm hover:translate-x-1 hover:shadow-neo hover:bg-yellow-50'
               }`}
               onClick={() => setPage(p.id)}
             >
-              <span className={`text-xl transition-all duration-500 group-hover:scale-125 ${page === p.id ? 'opacity-100' : 'opacity-30'}`}>
+              <span className="text-lg">
                 {p.icon}
               </span>
               <span className="flex-1 text-left">{p.label}</span>
               {p.count !== undefined && (
-                <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black ${
-                  page === p.id ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-500'
+                <span className={`px-2 py-0.5 border-2 border-black text-[10px] font-black shadow-neo-sm ${
+                  page === p.id ? 'bg-neoYellow text-black' : 'bg-neoPink text-white'
                 }`}>
                   {p.count}
                 </span>
@@ -118,21 +118,21 @@ export default function BackApp({ admin, onLogout, transactions: propTransaction
           ))}
         </nav>
 
-        <div className="p-8 border-t border-white/5 bg-black/20">
-          <div className="flex items-center gap-5 p-3 mb-8 bg-white/5 rounded-[24px] border border-white/5">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-violet-700 rounded-xl flex items-center justify-center text-xs font-black text-white shadow-2xl shrink-0">
+        <div className="p-5 border-t-4 border-black dark:border-white bg-white dark:bg-zinc-900">
+          <div className="flex items-center gap-3 p-2.5 mb-4 bg-neoCream dark:bg-zinc-800 border-2 border-black shadow-neo-sm">
+            <div className="w-10 h-10 bg-neoPink border-2 border-black flex items-center justify-center text-xs font-black text-white shadow-neo-sm shrink-0">
               {initials}
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-black text-white truncate leading-tight uppercase tracking-tight">{admin.name}</div>
-              <div className="text-[9px] text-slate-500 truncate mt-1 font-bold">{admin.email}</div>
+              <div className="text-xs font-black text-black dark:text-white truncate uppercase tracking-tight">{admin.name}</div>
+              <div className="text-[10px] text-gray-600 dark:text-gray-400 truncate font-bold">{admin.email}</div>
             </div>
           </div>
           <button 
-            className="w-full py-4 rounded-2xl bg-slate-800 hover:bg-rose-600 text-white text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 group" 
+            className="w-full py-3 bg-neoPink hover:bg-rose-500 text-white border-2 border-black text-[10px] font-black uppercase tracking-widest shadow-neo-sm hover:shadow-neo active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2" 
             onClick={onLogout}
           >
-            <span className="group-hover:animate-pulse">🚪</span> Sign Out
+            <span>🚪</span> Sign Out
           </button>
         </div>
       </aside>
@@ -140,34 +140,30 @@ export default function BackApp({ admin, onLogout, transactions: propTransaction
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
-        <header className="h-24 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 px-10 flex items-center justify-between sticky top-0 z-40">
-          <div className="flex items-center gap-5 animate-fade-in">
-             <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-2xl shadow-inner border border-slate-100 dark:border-slate-800">
+        <header className="h-20 bg-white dark:bg-zinc-900 border-b-4 border-black dark:border-white px-8 flex items-center justify-between sticky top-0 z-40">
+          <div className="flex items-center gap-4">
+             <div className="w-11 h-11 bg-neoYellow border-2 border-black flex items-center justify-center text-2xl shadow-neo-sm">
                 {pages.find(p => p.id === page)?.icon}
              </div>
              <div>
-                <h1 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">
+                <h1 className="text-xl font-black text-black dark:text-white uppercase tracking-tighter">
                   {pages.find(p => p.id === page)?.label}
                 </h1>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">SeMarketplace Suite</p>
+                <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">Admin Control System</p>
              </div>
           </div>
-          <div className="flex items-center gap-8">
-             <div className="hidden md:flex flex-col text-right">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</span>
-                <div className="flex items-center gap-2 justify-end mt-1">
-                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-                   <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight">Active &amp; Encrypted</span>
-                </div>
+          <div className="flex items-center gap-6">
+             <div className="hidden md:flex items-center gap-2 bg-neoGreen/20 border-2 border-black px-3 py-1.5 shadow-neo-sm">
+                <div className="w-2.5 h-2.5 bg-neoGreen border border-black animate-pulse"></div>
+                <span className="text-[10px] font-black text-black dark:text-white uppercase tracking-wider">CORE ACTIVE</span>
              </div>
-             <div className="w-px h-10 bg-slate-100 dark:bg-slate-800 mx-2"></div>
-             <div className="hidden sm:block text-right mr-4">
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Privileged Access</div>
-                <div className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight mt-1">{admin.name}</div>
+             <div className="hidden sm:block text-right">
+                <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">ADMINISTRATOR</div>
+                <div className="text-xs font-black text-black dark:text-white uppercase tracking-tight mt-0.5">{admin.name}</div>
              </div>
              <button 
                onClick={onLogout}
-               className="px-5 py-2.5 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-500 hover:text-white transition-all border border-rose-100 dark:border-rose-900/50"
+               className="px-4 py-2 bg-white dark:bg-zinc-800 text-black dark:text-white border-2 border-black text-[10px] font-black uppercase tracking-wider shadow-neo-sm hover:bg-neoPink hover:text-white transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
              >
                Sign Out
              </button>
@@ -176,7 +172,7 @@ export default function BackApp({ admin, onLogout, transactions: propTransaction
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
-          <div className="p-10 sm:p-14 max-w-[1800px] mx-auto animate-fade-in">
+          <div className="p-8 sm:p-10 max-w-[1700px] mx-auto animate-fade-in">
             {page === 'dashboard' && (
               <Dashboard
                 products={products}

@@ -39,193 +39,197 @@ export default function Storefront({
     return result
   }, [products, search, activeCategory, customTitle, sort])
 
-
   const title = customTitle || (search
-    ? `Results for "${search}"`
+    ? `SEARCH: "${search}"`
     : activeCategory !== 'All'
-    ? activeCategory
-    : 'All Products')
+    ? activeCategory.toUpperCase()
+    : 'EXPLORE CATALOG')
 
-  // Identify flash sale products explicitly flagged in back office
   const flashSaleProducts = products.filter(p => p.isFlashSale).slice(0, 8)
 
   return (
-    <div className="py-8 bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors">
+    <div className="py-8 min-h-screen select-none">
       <div className="container mx-auto px-4">
-        {/* Main Banner Carousel */}
+        {/* Main Banner */}
         {loading ? (
           <Skeleton type="banner" />
         ) : (
           !search && activeCategory === 'All' && !customTitle && <Banner />
         )}
 
-        {/* Flash Sale Banner (SeMarketplace Style) */}
+        {/* Neo-Brutalist Flash Sale Box */}
         {!loading && !search && activeCategory === 'All' && !customTitle && (
-          <div className="mb-10 rounded-[32px] overflow-hidden bg-white dark:bg-slate-900 shadow-2xl shadow-indigo-500/10 border border-slate-100 dark:border-slate-800">
-            <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-800 px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center text-4xl shadow-2xl">⚡</div>
+          <div className="mb-12 rounded-3xl border-4 border-black dark:border-white bg-white dark:bg-zinc-900 shadow-neo-lg overflow-hidden">
+            {/* Header Header Bar */}
+            <div className="bg-neoYellow text-black border-b-4 border-black dark:border-white p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-black text-neoYellow border-3 border-black rounded-2xl flex items-center justify-center text-3xl shadow-neo-sm -rotate-3">
+                  ⚡
+                </div>
                 <div>
-                   <h2 className="text-white text-2xl font-black tracking-tighter">SeMarketplace <span className="text-rose-400">Flash</span></h2>
-                   <p className="text-indigo-100/60 text-[10px] font-black uppercase tracking-[0.3em]">Daily Limited Offers</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
+                      FLASH SALE DROP
+                    </h2>
+                    <span className="bg-neoPink text-white border-2 border-black px-2 py-0.5 text-xs font-black rounded rotate-1 shadow-neo-sm">
+                      HOT
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-zinc-800 mt-0.5">
+                    LIMITED QUANTITIES • ONCE GONE, IT'S GONE
+                  </p>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                   <div className="flex flex-col items-center">
-                      <div className="w-12 h-12 bg-white text-indigo-900 rounded-2xl flex items-center justify-center font-black text-xl shadow-xl">
-                        {String(timeLeft.h).padStart(2, '0')}
-                      </div>
-                      <span className="text-[8px] font-black text-white/40 uppercase mt-1">Hrs</span>
-                   </div>
-                   <span className="text-white font-black text-xl mb-5">:</span>
-                   <div className="flex flex-col items-center">
-                      <div className="w-12 h-12 bg-white text-indigo-900 rounded-2xl flex items-center justify-center font-black text-xl shadow-xl">
-                        {String(timeLeft.m).padStart(2, '0')}
-                      </div>
-                      <span className="text-[8px] font-black text-white/40 uppercase mt-1">Min</span>
-                   </div>
-                   <span className="text-white font-black text-xl mb-5">:</span>
-                   <div className="flex flex-col items-center">
-                      <div className="w-12 h-12 bg-white text-indigo-900 rounded-2xl flex items-center justify-center font-black text-xl shadow-xl">
-                        {String(timeLeft.s).padStart(2, '0')}
-                      </div>
-                      <span className="text-[8px] font-black text-white/40 uppercase mt-1">Sec</span>
-                   </div>
+
+              {/* Countdown Digits */}
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-black text-white border-2 border-black rounded-xl font-black text-xl flex items-center justify-center shadow-neo-sm">
+                    {String(timeLeft.h).padStart(2, '0')}
+                  </div>
+                  <span className="text-[9px] font-black uppercase mt-1">HRS</span>
                 </div>
-                <button className="bg-white text-indigo-600 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl hover:shadow-indigo-500/40">
-                  Explore Now
-                </button>
+                <span className="font-black text-2xl mb-4">:</span>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-black text-white border-2 border-black rounded-xl font-black text-xl flex items-center justify-center shadow-neo-sm">
+                    {String(timeLeft.m).padStart(2, '0')}
+                  </div>
+                  <span className="text-[9px] font-black uppercase mt-1">MIN</span>
+                </div>
+                <span className="font-black text-2xl mb-4">:</span>
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-black text-white border-2 border-black rounded-xl font-black text-xl flex items-center justify-center shadow-neo-sm">
+                    {String(timeLeft.s).padStart(2, '0')}
+                  </div>
+                  <span className="text-[9px] font-black uppercase mt-1">SEC</span>
+                </div>
               </div>
             </div>
 
-            {/* Flash Sale Mini Grid */}
-            <div className="p-6 bg-white dark:bg-transparent overflow-x-auto no-scrollbar">
-               <div className="flex gap-6 min-w-max">
-                  {flashSaleProducts.map(p => (
-                    <div 
-                      key={p._id || p.id} 
-                      className="w-36 sm:w-44 cursor-pointer group"
-                      onClick={() => onSelectProduct(p)}
-                    >
-                       <div className="relative aspect-[4/5] rounded-[20px] overflow-hidden mb-3 bg-slate-50 dark:bg-slate-800">
-                          <img 
-                            src={p.image} 
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                            alt={p.name} 
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
-                            }}
-                          />
-                          {p.originalPrice && p.price && (
-                            <div className="absolute top-3 right-3 bg-rose-500 text-white text-[9px] font-black px-2 py-1 rounded-lg shadow-lg">
-                              -{Math.round((1 - p.price / p.originalPrice) * 100)}%
-                            </div>
-                          )}
-                       </div>
-                       <div className="text-indigo-600 font-black text-base">{formatPrice(p.price)}</div>
-                       <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
-                          <div 
-                            className={`h-full transition-all duration-1000 ${p.sold > 50 ? 'bg-rose-500' : 'bg-indigo-600'}`} 
-                            style={{ width: `${Math.min(95, Math.max(20, (p.sold / (p.sold + (p.stock || 1))) * 100))}%` }} 
-                          />
-                       </div>
-                       <div className="flex justify-between items-center mt-1.5">
-                          <div className={`text-[8px] font-black uppercase tracking-widest ${p.sold > 50 ? 'text-rose-500' : 'text-slate-400'}`}>
-                            {p.sold > 50 ? '🔥 Almost Sold Out' : `${p.sold} Reserved`}
-                          </div>
-                          <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${p.sold > 50 ? 'bg-rose-500' : 'bg-indigo-400'}`}></div>
-                       </div>
+            {/* Flash Mini Catalog Row */}
+            <div className="p-6 overflow-x-auto no-scrollbar bg-zinc-50 dark:bg-zinc-950">
+              <div className="flex gap-5 min-w-max">
+                {flashSaleProducts.map(p => (
+                  <div 
+                    key={p._id || p.id} 
+                    className="w-40 sm:w-48 bg-white dark:bg-zinc-900 border-3 border-black dark:border-white rounded-2xl p-3 shadow-neo-sm hover:-translate-x-1 hover:-translate-y-1 hover:shadow-neo transition-all cursor-pointer group"
+                    onClick={() => onSelectProduct(p)}
+                  >
+                    <div className="relative aspect-square rounded-xl overflow-hidden mb-2 bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white">
+                      <img 
+                        src={p.image} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform" 
+                        alt={p.name} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+                        }}
+                      />
+                      {p.originalPrice && p.price && (
+                        <div className="absolute top-2 right-2 bg-neoPink text-white text-[10px] font-black px-1.5 py-0.5 border border-black rounded shadow-neo-sm">
+                          -{Math.round((1 - p.price / p.originalPrice) * 100)}%
+                        </div>
+                      )}
                     </div>
-                  ))}
-               </div>
+                    <div className="font-black text-sm text-black dark:text-white truncate uppercase">{p.name}</div>
+                    <div className="font-black text-base text-black dark:text-white mt-0.5">{formatPrice(p.price)}</div>
+                    
+                    {/* Stock Bar */}
+                    <div className="w-full h-2.5 bg-zinc-200 dark:bg-zinc-800 border border-black rounded-full mt-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-neoPink" 
+                        style={{ width: `${Math.min(95, Math.max(25, (p.sold / (p.sold + (p.stock || 1))) * 100))}%` }} 
+                      />
+                    </div>
+                    <div className="text-[9px] font-black uppercase text-zinc-500 mt-1">
+                      {p.sold} BOUGHT ALREADY
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Categories Circle Grid */}
+        {/* Category Blocks Grid */}
         {!loading && !search && activeCategory === 'All' && !customTitle && (
           <div className="mb-12">
-            <div className="flex items-center gap-6 sm:gap-10 overflow-x-auto no-scrollbar scroll-smooth pb-4">
-              {CATEGORIES.filter(c => c.id !== 'All').map(cat => (
-                <div 
-                  key={cat.id} 
-                  className="flex flex-col items-center gap-4 cursor-pointer group min-w-[80px]"
-                  onClick={() => setActiveCategory(cat.id)}
-                >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white dark:bg-slate-900 rounded-[28px] shadow-xl shadow-slate-200/50 dark:shadow-black/20 flex items-center justify-center text-3xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-indigo-500/20 group-hover:bg-indigo-600 group-hover:text-white border border-slate-50 dark:border-slate-800">
-                    {cat.icon}
+            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-3">
+              {CATEGORIES.filter(c => c.id !== 'All').map((cat, idx) => {
+                const colors = ['bg-neoYellow', 'bg-neoPink', 'bg-neoCyan', 'bg-neoGreen', 'bg-neoOrange', 'bg-purple-300']
+                const cardColor = colors[idx % colors.length]
+                return (
+                  <div 
+                    key={cat.id} 
+                    className="flex flex-col items-center gap-2 cursor-pointer group min-w-[105px]"
+                    onClick={() => setActiveCategory(cat.id)}
+                  >
+                    <div className={`w-20 h-20 ${cardColor} border-3 border-black dark:border-white rounded-2xl shadow-neo-sm flex items-center justify-center text-3xl transition-all duration-200 group-hover:-translate-x-1 group-hover:-translate-y-1 group-hover:shadow-neo active:translate-x-0.5 active:translate-y-0.5 active:shadow-none`}>
+                      {cat.icon}
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white text-center">
+                      {cat.name}
+                    </span>
                   </div>
-                  <div className="text-[10px] sm:text-xs font-black text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 uppercase tracking-widest text-center transition-colors">
-                    {cat.name}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
 
-        {/* Section bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-          <div className="flex items-center gap-4">
-             <div className="w-2 h-10 bg-indigo-600 rounded-full shadow-lg shadow-indigo-200"></div>
-             <div>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">{title}</h2>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{filteredAndSorted.length} Pieces Available</p>
-             </div>
-          </div>
-          <div className="flex items-center gap-6 bg-white dark:bg-slate-900 p-2 px-6 rounded-[20px] shadow-xl shadow-slate-200/40 dark:shadow-black/20 border border-slate-50 dark:border-slate-800">
-            <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              <span>Sort:</span>
-              <select 
-                value={sort} 
-                onChange={(e) => setSort(e.target.value)}
-                className="bg-transparent font-black text-indigo-600 outline-none cursor-pointer"
-              >
-                <option value="newest">Latest Arrivals</option>
-                <option value="price-low">Value: Low to High</option>
-                <option value="price-high">Value: High to Low</option>
-                <option value="rating">Most Exquisite</option>
-              </select>
+        {/* Section Header Bar & Sort Filter */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 border-b-4 border-black dark:border-white pb-4" id="featured-catalog">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-8 bg-neoYellow border-2 border-black"></div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-black dark:text-white">
+                {title}
+              </h2>
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-500">
+                {filteredAndSorted.length} ITEMS READY TO ORDER
+              </span>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border-3 border-black dark:border-white px-4 py-2 rounded-xl shadow-neo-sm">
+            <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">SORT BY:</span>
+            <select 
+              value={sort} 
+              onChange={(e) => setSort(e.target.value)}
+              className="bg-transparent font-black text-xs uppercase outline-none cursor-pointer text-black dark:text-white"
+            >
+              <option value="newest" className="bg-white dark:bg-zinc-900 text-black dark:text-white">LATEST DROPS</option>
+              <option value="price-low" className="bg-white dark:bg-zinc-900 text-black dark:text-white">PRICE: LOW TO HIGH</option>
+              <option value="price-high" className="bg-white dark:bg-zinc-900 text-black dark:text-white">PRICE: HIGH TO LOW</option>
+              <option value="rating" className="bg-white dark:bg-zinc-900 text-black dark:text-white">TOP RATED</option>
+            </select>
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Product Cards Grid */}
         {loading ? (
           <Skeleton type="card" count={12} />
         ) : filteredAndSorted.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in bg-white dark:bg-[#1A1A1A] rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm transition-colors">
-            <div className="text-7xl mb-6 grayscale opacity-20">
-              {products.length === 0 ? '🏪' : '🔍'}
-            </div>
-            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-              {products.length === 0 ? 'Nothing Here Yet' : 'No Results Found'}
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-zinc-900 border-4 border-black dark:border-white rounded-3xl shadow-neo-lg">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-2xl font-black uppercase tracking-tight text-black dark:text-white mb-2">
+              NO MATCHING ITEMS
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
-              {products.length === 0
-                ? 'Check back later or add items to your wishlist to see them here!'
-                : `We couldn't find any products matching "${search}". Try different keywords or browse categories.`}
+            <p className="text-sm font-bold text-zinc-500 max-w-sm">
+              We couldn't find any products matching "{search}". Try searching another keyword or select All Categories.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-            {filteredAndSorted.map((p, i) => (
-              <div 
-                key={p._id || p.id} 
-                className="animate-fade-in-up" 
-                style={{ animationDelay: `${i * 0.05}s`, animationFillMode: 'both' }}
-              >
-                <ProductCard 
-                  product={p} 
-                  onAddToCart={onAddToCart} 
-                  onClick={() => onSelectProduct(p)} 
-                  wishlist={wishlist}
-                  onToggleWishlist={onToggleWishlist}
-                />
-              </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+            {filteredAndSorted.map((p) => (
+              <ProductCard 
+                key={p._id || p.id}
+                product={p} 
+                onAddToCart={onAddToCart} 
+                onClick={() => onSelectProduct(p)} 
+                wishlist={wishlist}
+                onToggleWishlist={onToggleWishlist}
+              />
             ))}
           </div>
         )}
@@ -233,5 +237,3 @@ export default function Storefront({
     </div>
   )
 }
-
-
