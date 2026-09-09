@@ -21,7 +21,7 @@ FROM alpine:latest
 
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates tzdata && \
+RUN apk add --no-cache ca-certificates tzdata sqlite && \
     mkdir -p /app/data
 
 COPY --from=builder /app/server /app/server

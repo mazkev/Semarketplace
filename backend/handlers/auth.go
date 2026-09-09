@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -71,6 +72,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("🔐 [AUTH LOGIN] Successful login: %s (Role: %s)", u.Email, u.Role)
 	middleware.JSON(w, http.StatusOK, u)
 }
 
@@ -145,5 +147,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: createdAt,
 	}
 
+	log.Printf("📝 [AUTH REGISTER] New user created: %s (%s) [Role: %s]", user.Email, user.Name, user.Role)
 	middleware.JSON(w, http.StatusCreated, user)
 }

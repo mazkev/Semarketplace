@@ -52,8 +52,8 @@ func main() {
 	mux.HandleFunc("/api/analytics", handlers.AnalyticsHandler)
 	mux.HandleFunc("/api/analytics/overview", handlers.AnalyticsHandler)
 
-	// 3. Attach CORS middleware
-	handler := middleware.CORS(mux)
+	// 3. Attach CORS and Logger middleware
+	handler := middleware.Logger(middleware.CORS(mux))
 
 	// 4. Determine Port
 	port := os.Getenv("PORT")

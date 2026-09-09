@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -151,9 +152,21 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := tx.Commit(); err != nil {
+		log.Printf("❌ [ORDER ERROR] Failed to commit order %s: %v", o.ID, err)
 		middleware.Error(w, http.StatusInternalServerError, "Failed to commit order: "+err.Error())
 		return
 	}
+
+	log.Printf("================================================================")
+	log.Printf("🛍️ [NEW TRANSACTION] Order ID: %s", o.ID)
+	log.Printf("👤 Customer: %s (%s) [ID: %s]", o.CustomerName, o.CustomerEmail, o.CustomerID)
+	log.Printf("💰 Total Amount: Rp %.0f | Status: %s", o.Total, o.Status)
+	log.Printf("📦 Items (%d total):", len(o.Items))
+	for idx, itm := range o.Items {
+		log.Printf("   [%d] %s x%d @ Rp %.0f (ID: %s)", idx+1, itm.Name, itm.Qty, itm.Price, itm.ProductID)
+	}
+	log.Printf("🕒 Time: %s", o.Timestamp)
+	log.Printf("================================================================")
 
 	middleware.JSON(w, http.StatusCreated, o)
 }
@@ -173,6 +186,7 @@ func updateOrder(w http.ResponseWriter, r *http.Request, id string) {
 
 	result, err := database.DB.Exec("UPDATE orders SET status = ? WHERE id = ?", status, id)
 	if err != nil {
+		log.Printf("❌ [ORDER ERROR] Failed to update order %s: %v", id, err)
 		middleware.Error(w, http.StatusInternalServerError, "Failed to update order status: "+err.Error())
 		return
 	}
@@ -182,6 +196,8 @@ func updateOrder(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
+	log.Printf("🔄 [ORDER STATUS UPDATED] ID: %s -> New Status: %s", id, status)
+
 	// Return updated order
 	getOrderByID(w, r, id)
 }
@@ -189,6 +205,7 @@ func updateOrder(w http.ResponseWriter, r *http.Request, id string) {
 func deleteOrder(w http.ResponseWriter, _ *http.Request, id string) {
 	result, err := database.DB.Exec("DELETE FROM orders WHERE id = ?", id)
 	if err != nil {
+		log.Printf("❌ [ORDER ERROR] Failed to delete order %s: %v", id, err)
 		middleware.Error(w, http.StatusInternalServerError, "Failed to delete order: "+err.Error())
 		return
 	}
@@ -197,6 +214,8 @@ func deleteOrder(w http.ResponseWriter, _ *http.Request, id string) {
 		middleware.Error(w, http.StatusNotFound, "Order not found")
 		return
 	}
+
+	log.Printf("🗑️ [ORDER DELETED/CANCELLED] ID: %s", id)
 
 	middleware.JSON(w, http.StatusOK, map[string]any{"success": true})
 }
