@@ -44,7 +44,7 @@ export function validateEmail(email) {
 
 /* ── Default Admin Seed ── */
 export const DEFAULT_ADMINS = [
-  { id: 'admin-001', name: 'Super Admin', email: 'admin@nexmart.com', password: hashPassword('admin123'), createdAt: Date.now() }
+  { id: 'admin-001', name: 'Super Admin', email: 'admin@semarketplace.com', password: hashPassword('admin123'), createdAt: Date.now() }
 ]
 
 /* ── Shopee-Style Seed Products (IDR) ── */
@@ -173,7 +173,7 @@ export const CATEGORIES = [
 ]
 
 export const COUPONS = [
-  { code: 'NEXMART10', type: 'percentage', value: 0.1, description: '10% OFF Storewide' },
+  { code: 'SEMARKET10', type: 'percentage', value: 0.1, description: '10% OFF Storewide' },
   { code: 'SAVE50', type: 'fixed', value: 50000, description: 'Rp 50.000 Flat Discount' },
   { code: 'FLASH20', type: 'percentage', value: 0.2, description: '20% OFF Flash Sale Voucher' },
 ]

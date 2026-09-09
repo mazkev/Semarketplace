@@ -3,84 +3,83 @@ import { formatPrice, formatDate } from '../utils'
 export default function Receipt({ receipt, onClose, onViewOrders }) {
   const count = receipt.items.reduce((s, i) => s + i.qty, 0)
   return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white dark:bg-slate-900 rounded-[32px] w-full max-w-md overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.25)] animate-scale-in border border-white/20">
-        {/* Header Section */}
-        <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 text-center relative">
-          <div className="absolute top-4 left-4 opacity-20 text-2xl">✦</div>
-          <div className="absolute bottom-4 right-4 opacity-20 text-2xl">✧</div>
-          
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-2xl rounded-[24px] flex items-center justify-center text-3xl mx-auto mb-4 shadow-2xl border border-white/20 animate-bounce-slow">
-            ✅
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-fade-in font-sans">
+      <div className="bg-white dark:bg-zinc-900 border-4 border-black dark:border-white w-full max-w-md overflow-hidden shadow-neo-xl animate-scale-in">
+        {/* Neo Header Section */}
+        <div className="bg-neoYellow border-b-4 border-black dark:border-white p-6 text-center relative">
+          <div className="w-14 h-14 bg-black text-white border-2 border-black flex items-center justify-center text-3xl mx-auto mb-3 shadow-neo-sm font-black">
+            ✓
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tighter mb-1 uppercase">Order Confirmed</h2>
-          <p className="text-indigo-100/60 font-black text-[9px] uppercase tracking-[0.3em]">Thank you for choosing SeMarketplace</p>
+          <div className="inline-block bg-black text-white px-3 py-0.5 font-black text-[10px] uppercase tracking-widest mb-1.5 shadow-neo-sm">
+            TRANSACTION VERIFIED
+          </div>
+          <h2 className="text-2xl font-black text-black tracking-tighter uppercase leading-tight">Order Confirmed</h2>
+          <p className="text-black/80 font-black text-[10px] uppercase tracking-wider mt-1">Thank you for shopping at SE-MARKET</p>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Order Meta */}
-          <div className="grid grid-cols-3 gap-4 border-y border-slate-50 dark:border-slate-800 py-4">
+        <div className="p-6 space-y-5 bg-white dark:bg-zinc-900">
+          {/* Order Meta Grid */}
+          <div className="grid grid-cols-3 gap-2 bg-neoCream dark:bg-zinc-800 border-3 border-black dark:border-white p-3 shadow-neo-sm">
             <div className="text-center">
-              <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Order #</div>
-              <div className="text-[9px] font-black text-indigo-600 truncate uppercase">{receipt._id || receipt.id}</div>
+              <div className="text-[9px] font-black text-gray-500 uppercase tracking-wider">ORDER #</div>
+              <div className="text-[10px] font-black text-black dark:text-white truncate font-mono mt-0.5">{receipt._id || receipt.id}</div>
             </div>
-            <div className="text-center border-x border-slate-50 dark:border-slate-800 px-2">
-              <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</div>
-              <div className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{formatDate(receipt.date || receipt.timestamp || Date.now())}</div>
-
+            <div className="text-center border-x-2 border-black dark:border-white px-1">
+              <div className="text-[9px] font-black text-gray-500 uppercase tracking-wider">DATE</div>
+              <div className="text-[10px] font-black text-black dark:text-white uppercase mt-0.5">{formatDate(receipt.date || receipt.timestamp || Date.now())}</div>
             </div>
             <div className="text-center">
-              <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Items</div>
-              <div className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{count} Units</div>
+              <div className="text-[9px] font-black text-gray-500 uppercase tracking-wider">ITEMS</div>
+              <div className="text-[10px] font-black text-black dark:text-white uppercase mt-0.5">{count} Units</div>
             </div>
           </div>
 
           {/* Item List Summary */}
-          <div className="space-y-3 max-h-[140px] overflow-y-auto pr-2 no-scrollbar">
+          <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 no-scrollbar">
             {receipt.items.map(item => (
-              <div key={item.productId || item.id} className="flex items-center justify-between group">
-                <div className="flex-1">
-                  <div className="text-[11px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight line-clamp-1">{item.name}</div>
-                  <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Qty: {item.qty} &bull; {formatPrice(item.price)}</div>
+              <div key={item.productId || item.id} className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-zinc-800 border-2 border-black shadow-neo-sm">
+                <div className="flex-1 pr-2">
+                  <div className="text-xs font-black text-black dark:text-white uppercase tracking-tight line-clamp-1">{item.name}</div>
+                  <div className="text-[10px] font-bold text-gray-500 uppercase mt-0.5">Qty: {item.qty} &bull; {formatPrice(item.price)}</div>
                 </div>
-                <div className="text-xs font-black text-indigo-600 ml-4 group-hover:scale-110 transition-transform">
+                <div className="text-xs font-black text-black dark:text-white bg-neoYellow border border-black px-2 py-0.5 shadow-neo-sm">
                   {formatPrice(item.price * item.qty)}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Calculations */}
-          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[24px] p-5 space-y-3 border border-slate-100 dark:border-slate-800 shadow-inner">
-             <div className="flex justify-between text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                <span>Items Valuation</span>
-                <span>{formatPrice(receipt.total)}</span>
+          {/* Calculations Box */}
+          <div className="bg-neoCream dark:bg-zinc-800 p-4 border-3 border-black dark:border-white space-y-2 shadow-neo-sm text-xs font-bold text-gray-700 dark:text-gray-300">
+             <div className="flex justify-between">
+                <span className="uppercase">Items Valuation</span>
+                <span className="font-black text-black dark:text-white">{formatPrice(receipt.total)}</span>
              </div>
-             <div className="flex justify-between text-[9px] font-black text-indigo-600 uppercase tracking-widest">
-                <span>Logistics</span>
-                <span className="bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-lg">Complimentary</span>
+             <div className="flex justify-between items-center text-neoGreen font-black">
+                <span className="uppercase">Logistics Delivery</span>
+                <span className="bg-black text-white px-2 py-0.5 text-[9px] uppercase border border-black">FREE (COMPLIMENTARY)</span>
              </div>
-             <div className="pt-4 border-t border-slate-200 dark:border-slate-700 mt-2 flex justify-between items-center">
-                <span className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Final Total</span>
-                <span className="text-2xl font-black text-indigo-600 tracking-tighter">{formatPrice(receipt.total)}</span>
+             <div className="pt-2.5 border-t-2 border-dashed border-black/30 dark:border-white/30 flex justify-between items-center">
+                <span className="text-xs font-black text-black dark:text-white uppercase tracking-wider">TOTAL PAID</span>
+                <span className="text-2xl font-black text-black dark:text-white tracking-tight">{formatPrice(receipt.total)}</span>
              </div>
           </div>
 
           {/* Actions */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 pt-1">
             <button 
               id="view-orders-btn" 
-              className="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-indigo-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-lg shadow-indigo-500/5" 
+              className="px-4 py-3 bg-white dark:bg-zinc-800 border-3 border-black text-black dark:text-white font-black text-xs uppercase tracking-wider shadow-neo hover:bg-yellow-50 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center" 
               onClick={onViewOrders}
             >
               📋 My Orders
             </button>
             <button 
               id="continue-shopping-btn" 
-              className="px-6 py-4 bg-indigo-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-2xl shadow-indigo-500/30 hover:bg-indigo-700 transition-all hover:-translate-y-1" 
+              className="px-4 py-3 bg-neoGreen hover:bg-emerald-400 text-black border-3 border-black font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-center" 
               onClick={onClose}
             >
-              Finish
+              Finish Shopping ➔
             </button>
           </div>
         </div>
@@ -88,4 +87,3 @@ export default function Receipt({ receipt, onClose, onViewOrders }) {
     </div>
   )
 }
-

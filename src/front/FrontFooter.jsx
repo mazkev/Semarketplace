@@ -2,36 +2,36 @@ import React from 'react'
 
 export default function FrontFooter({ setPage }) {
   return (
-    <footer className="bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 py-20 mt-20 transition-colors">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+    <footer className="bg-white dark:bg-zinc-900 border-t-4 border-black dark:border-white py-16 mt-16 font-sans">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
              <div 
-               className="flex items-center gap-3 cursor-pointer select-none group mb-6" 
+               className="inline-flex items-center gap-3 cursor-pointer select-none mb-4 bg-neoYellow border-3 border-black px-3.5 py-2 shadow-neo hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all" 
                onClick={() => setPage('shop')}
              >
-               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
-                  <span className="text-xl text-white">📦</span>
-               </div>
-               <span className="text-xl font-black tracking-tighter text-slate-900 dark:text-white">Se<span className="text-indigo-600">Marketplace</span></span>
+               <span className="text-2xl">🛍️</span>
+               <span className="text-xl font-black tracking-tighter uppercase text-black">SE-MARKET</span>
              </div>
-             <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xs">
-                Your destination for unique treasures and premium objects. Crafted for those who appreciate the finer things in life.
+             <p className="text-gray-600 dark:text-gray-400 text-xs font-bold leading-relaxed max-w-xs mt-2">
+                Premium high-velocity marketplace. Crafted with bold Neo-Brutalism aesthetics and instant checkout experience.
              </p>
           </div>
 
           {/* Navigation */}
           <div>
-            <h4 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-8">Navigation</h4>
-            <ul className="space-y-4">
+            <h4 className="text-xs font-black text-black dark:text-white uppercase tracking-widest mb-4 pb-2 border-b-2 border-black dark:border-white inline-block">
+              Navigation
+            </h4>
+            <ul className="space-y-2.5">
               {['Shop All', 'Wishlist', 'My Orders', 'About Us'].map((link) => (
                 <li key={link}>
                   <button 
                     onClick={() => setPage(link === 'My Orders' ? 'orders' : link === 'Wishlist' ? 'wishlist' : 'shop')}
-                    className="text-slate-400 hover:text-indigo-600 text-sm font-bold transition-colors uppercase tracking-widest text-[11px]"
+                    className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:underline decoration-2 text-xs font-bold uppercase tracking-wider transition-colors"
                   >
-                    {link}
+                    ➔ {link}
                   </button>
                 </li>
               ))}
@@ -40,12 +40,14 @@ export default function FrontFooter({ setPage }) {
 
           {/* Support */}
           <div>
-            <h4 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-8">Support</h4>
-            <ul className="space-y-4">
-              {['Help Center', 'Track Order', 'Sustainability', 'Membership'].map((link) => (
+            <h4 className="text-xs font-black text-black dark:text-white uppercase tracking-widest mb-4 pb-2 border-b-2 border-black dark:border-white inline-block">
+              Assistance
+            </h4>
+            <ul className="space-y-2.5">
+              {['Help Center', 'Track Order', 'Return Policy', 'Security Info'].map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-slate-400 hover:text-indigo-600 text-sm font-bold transition-colors uppercase tracking-widest text-[11px]">
-                    {link}
+                  <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:underline decoration-2 text-xs font-bold uppercase tracking-wider transition-colors">
+                    ➔ {link}
                   </a>
                 </li>
               ))}
@@ -54,35 +56,36 @@ export default function FrontFooter({ setPage }) {
 
           {/* Newsletter */}
           <div>
-            <h4 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] mb-8">Stay Connected</h4>
-            <p className="text-slate-400 text-xs font-medium mb-6">Join our newsletter for exclusive updates and early access to new drops.</p>
+            <h4 className="text-xs font-black text-black dark:text-white uppercase tracking-widest mb-4 pb-2 border-b-2 border-black dark:border-white inline-block">
+              Newsletter
+            </h4>
+            <p className="text-gray-600 dark:text-gray-400 text-xs font-bold mb-4">Get flash drops and secret discount codes directly.</p>
             <div className="flex gap-2">
               <input 
                 type="email" 
-                placeholder="Email Address" 
-                className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-xs outline-none focus:border-indigo-600 transition-all flex-1 text-slate-900 dark:text-white"
+                placeholder="YOUR EMAIL" 
+                className="bg-neoCream dark:bg-zinc-800 border-2 border-black dark:border-white px-3 py-2 text-xs font-bold outline-none flex-1 text-black dark:text-white shadow-neo-sm placeholder:font-black placeholder:uppercase placeholder:text-gray-400"
               />
-              <button className="bg-slate-900 dark:bg-indigo-600 text-white px-6 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl">
-                Join
+              <button className="bg-neoYellow hover:bg-yellow-300 text-black border-2 border-black px-4 font-black text-xs uppercase tracking-wider shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
+                JOIN
               </button>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Copyright 2026 @mazkev
+        <div className="pt-8 border-t-3 border-black dark:border-white flex flex-col md:flex-row justify-between items-center gap-4">
+           <div className="text-[11px] font-black uppercase tracking-wider text-black dark:text-white">
+              &copy; 2026 SEMARKETPLACE • ALL RIGHTS RESERVED
            </div>
-           <div className="flex gap-8">
-              <a href="#" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 dark:hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 dark:hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 dark:hover:text-white transition-colors">Cookies</a>
-              <a href="#/backOffice" className="text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">Admin Portal</a>
+           <div className="flex gap-6">
+              <a href="#" className="text-[10px] font-black uppercase tracking-wider hover:underline text-gray-500 hover:text-black dark:hover:text-white">Privacy</a>
+              <a href="#" className="text-[10px] font-black uppercase tracking-wider hover:underline text-gray-500 hover:text-black dark:hover:text-white">Terms</a>
+              <a href="#/backOffice" className="text-[10px] font-black uppercase tracking-wider text-neoPink hover:underline">Admin Console</a>
            </div>
-           <div className="flex gap-4">
+           <div className="flex gap-2">
               {['𝕏', '📸', '📽️', '📍'].map(icon => (
-                <a key={icon} href="#" className="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center text-lg hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                <a key={icon} href="#" className="w-8 h-8 bg-white dark:bg-zinc-800 border-2 border-black text-black dark:text-white flex items-center justify-center text-sm shadow-neo-sm hover:bg-neoYellow active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
                   {icon}
                 </a>
               ))}

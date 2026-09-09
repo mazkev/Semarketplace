@@ -10,7 +10,6 @@ export default function LiveChat({ user }) {
   const loadMessages = () => {
     try {
       const allMessages = JSON.parse(localStorage.getItem('nex_chat_messages') || '[]')
-      // Filter messages for this specific user
       const myMessages = allMessages.filter(m => m.userId === user._id)
       setMessages(myMessages)
     } catch (e) {
@@ -20,7 +19,6 @@ export default function LiveChat({ user }) {
 
   useEffect(() => {
     loadMessages()
-    // Listen for storage changes (replies from Admin)
     const handleStorage = (e) => {
       if (e.key === 'nex_chat_messages') loadMessages()
     }
@@ -51,55 +49,57 @@ export default function LiveChat({ user }) {
     const updated = [...allMessages, newMessage]
     localStorage.setItem('nex_chat_messages', JSON.stringify(updated))
     
-    // Manually trigger local update since 'storage' event doesn't fire in the same tab
     loadMessages()
     setMessage('')
   }
 
   return (
-    <div className="fixed bottom-8 right-8 z-[150] font-sans">
+    <div className="fixed bottom-6 right-6 z-[150] font-sans">
       {/* Chat Window */}
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-[380px] h-[550px] bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[32px] shadow-[0_30px_100px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden border border-white/20 animate-scale-in origin-bottom-right">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-violet-700 p-6 text-white shrink-0">
-             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl shadow-xl border border-white/10">🛎️</div>
-                   <div>
-                      <h4 className="text-sm font-black uppercase tracking-widest">SeMarketplace</h4>
-                      <div className="flex items-center gap-1.5 mt-1">
-                         <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
-                         <span className="text-[9px] font-black uppercase tracking-widest opacity-70">Concierge Active</span>
-                      </div>
+        <div className="absolute bottom-16 right-0 w-[360px] sm:w-[380px] h-[520px] bg-white dark:bg-zinc-900 border-4 border-black dark:border-white shadow-neo-xl flex flex-col overflow-hidden animate-scale-in origin-bottom-right">
+          {/* Neo Header */}
+          <div className="bg-neoYellow border-b-4 border-black p-4 text-black shrink-0 flex items-center justify-between">
+             <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-black text-white border-2 border-black flex items-center justify-center text-xl shadow-neo-sm">🛎️</div>
+                <div>
+                   <h4 className="text-sm font-black uppercase tracking-wider leading-none">SE-MARKET</h4>
+                   <div className="flex items-center gap-1.5 mt-1">
+                      <div className="w-2 h-2 bg-neoGreen border border-black animate-pulse"></div>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-black/80">Support Active</span>
                    </div>
                 </div>
-                <button onClick={() => setIsOpen(false)} className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors">✕</button>
              </div>
+             <button 
+               onClick={() => setIsOpen(false)} 
+               className="w-8 h-8 bg-white border-2 border-black text-black font-black flex items-center justify-center shadow-neo-sm hover:bg-neoPink hover:text-white active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+             >
+               ✕
+             </button>
           </div>
 
           {/* Messages Area */}
           <div 
             ref={scrollRef}
-            className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar scroll-smooth bg-slate-50/50 dark:bg-transparent"
+            className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar scroll-smooth bg-neoCream/30 dark:bg-zinc-900"
           >
             {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center px-6">
-                 <div className="text-4xl mb-4 grayscale opacity-20">👋</div>
-                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest leading-relaxed">
+              <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                 <div className="text-4xl mb-3">👋</div>
+                 <div className="bg-neoYellow border-2 border-black p-3 shadow-neo-sm text-xs font-black uppercase">
                     Hello {user.name.split(' ')[0]}!<br/>How can we assist you today?
-                 </p>
+                 </div>
               </div>
             ) : (
               messages.map((m) => (
-                <div key={m.id} className={`flex ${m.sender === 'customer' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
-                  <div className={`max-w-[80%] p-4 rounded-2xl text-xs font-medium shadow-sm ${
+                <div key={m.id} className={`flex ${m.sender === 'customer' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] p-3 text-xs font-bold border-2 border-black shadow-neo-sm ${
                     m.sender === 'customer' 
-                      ? 'bg-indigo-600 text-white rounded-tr-none' 
-                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-800 rounded-tl-none'
+                      ? 'bg-neoCyan text-black' 
+                      : 'bg-white dark:bg-zinc-800 text-black dark:text-white'
                   }`}>
                     {m.text}
-                    <div className={`text-[8px] mt-2 opacity-40 font-black uppercase ${m.sender === 'customer' ? 'text-right' : 'text-left'}`}>
+                    <div className={`text-[8px] mt-1.5 font-black uppercase opacity-60 ${m.sender === 'customer' ? 'text-right' : 'text-left'}`}>
                        {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
@@ -109,20 +109,20 @@ export default function LiveChat({ user }) {
           </div>
 
           {/* Input Area */}
-          <form onSubmit={handleSend} className="p-5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex gap-3 bg-slate-50 dark:bg-slate-800 rounded-2xl p-2 focus-within:ring-2 ring-indigo-500/20 transition-all">
+          <form onSubmit={handleSend} className="p-3 bg-white dark:bg-zinc-900 border-t-3 border-black dark:border-white">
+            <div className="flex gap-2">
                <input 
                  type="text" 
-                 placeholder="Describe your request…"
-                 className="flex-1 bg-transparent px-4 py-2 text-xs outline-none text-slate-800 dark:text-white font-medium"
+                 placeholder="Type your message…"
+                 className="flex-1 bg-neoCream dark:bg-zinc-800 border-2 border-black dark:border-white px-3 py-2 text-xs font-bold outline-none text-black dark:text-white shadow-neo-sm"
                  value={message}
                  onChange={e => setMessage(e.target.value)}
                />
                <button 
                  type="submit"
-                 className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center hover:bg-indigo-700 transition-all shadow-lg"
+                 className="w-10 h-10 bg-neoYellow hover:bg-yellow-300 text-black border-2 border-black font-black flex items-center justify-center shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all"
                >
-                 →
+                 ➔
                </button>
             </div>
           </form>
@@ -132,14 +132,13 @@ export default function LiveChat({ user }) {
       {/* Floating Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-16 h-16 rounded-[24px] flex items-center justify-center text-2xl shadow-2xl transition-all duration-500 hover:scale-110 active:scale-95 group ${
-          isOpen ? 'bg-slate-900 text-white rotate-90' : 'bg-indigo-600 text-white'
-        }`}
+        className="w-14 h-14 bg-neoYellow hover:bg-yellow-300 border-3 border-black text-black flex items-center justify-center text-2xl shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all relative font-black"
+        title="Live Support"
       >
-        <span className="group-hover:animate-bounce-slow">{isOpen ? '✕' : '💬'}</span>
+        <span>{isOpen ? '✕' : '💬'}</span>
         {!isOpen && (
-          <span className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-white dark:border-slate-950 animate-pulse">
-            1
+          <span className="absolute -top-2 -right-2 w-5 h-5 bg-neoPink text-white text-[10px] font-black flex items-center justify-center border-2 border-black shadow-neo-sm">
+            !
           </span>
         )}
       </button>

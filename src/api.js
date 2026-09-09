@@ -134,7 +134,7 @@ const DEFAULT_PRODUCTS = [
 const DEFAULT_COUPONS = [
   { _id: 'c1', code: 'WELCOME10', type: 'percentage', value: 10, active: true, description: '10% New User Discount' },
   { _id: 'c2', code: 'MEGAIDR', type: 'fixed', value: 500000, active: true, description: 'IDR 500k Flat Discount' },
-  { _id: 'c3', code: 'NEXMART10', type: 'percentage', value: 10, active: true, description: '10% OFF Storewide' },
+  { _id: 'c3', code: 'SEMARKET10', type: 'percentage', value: 10, active: true, description: '10% OFF Storewide' },
   { _id: 'c4', code: 'SAVE50', type: 'fixed', value: 50000, active: true, description: 'Rp 50.000 Flat Discount' }
 ];
 
@@ -162,7 +162,7 @@ async function initStorage() {
     if (!localStorage.getItem('mock_orders')) localStorage.setItem('mock_orders', JSON.stringify([]));
     if (!localStorage.getItem('mock_users')) {
       localStorage.setItem('mock_users', JSON.stringify([
-        { _id: 'u1', name: 'Admin User', email: 'admin@nexmart.com', isAdmin: true, role: 'Admin' },
+        { _id: 'u1', name: 'Admin User', email: 'admin@semarketplace.com', isAdmin: true, role: 'Admin' },
         { _id: 'u2', name: 'Kevin Pratama', email: 'kevin@test.com', isAdmin: false, role: 'Customer' }
       ]));
     }

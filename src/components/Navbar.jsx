@@ -7,7 +7,7 @@ export default function Navbar({ activeTab, setActiveTab, cartCount, onCartOpen 
         {/* Brand */}
         <div className="navbar-brand">
           <div className="navbar-logo">🛍️</div>
-          <span className="navbar-title">NexMart</span>
+          <span className="navbar-title font-black uppercase">SE-MARKET</span>
         </div>
 
         {/* Tabs */}
