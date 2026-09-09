@@ -62,6 +62,10 @@ func getAllCoupons(w http.ResponseWriter, _ *http.Request) {
 		c.IDAlias = c.ID
 		coupons = append(coupons, c)
 	}
+	if err := rows.Err(); err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed reading coupons: "+err.Error())
+		return
+	}
 
 	middleware.JSON(w, http.StatusOK, coupons)
 }

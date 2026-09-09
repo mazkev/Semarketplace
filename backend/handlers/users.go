@@ -63,6 +63,10 @@ func getAllUsers(w http.ResponseWriter, _ *http.Request) {
 		u.IDAlias = u.ID
 		users = append(users, u)
 	}
+	if err := rows.Err(); err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed reading users: "+err.Error())
+		return
+	}
 
 	middleware.JSON(w, http.StatusOK, users)
 }

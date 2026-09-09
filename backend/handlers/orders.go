@@ -73,6 +73,10 @@ func getAllOrders(w http.ResponseWriter, _ *http.Request) {
 		o.IDAlias = o.ID
 		orders = append(orders, o)
 	}
+	if err := rows.Err(); err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed reading orders: "+err.Error())
+		return
+	}
 
 	middleware.JSON(w, http.StatusOK, orders)
 }

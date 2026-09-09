@@ -74,6 +74,10 @@ func getAllProducts(w http.ResponseWriter, _ *http.Request) {
 		p.IDAlias = p.ID
 		products = append(products, p)
 	}
+	if err := rows.Err(); err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed reading products: "+err.Error())
+		return
+	}
 
 	middleware.JSON(w, http.StatusOK, products)
 }
