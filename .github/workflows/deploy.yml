@@ -60,20 +60,23 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          password: ${{ secrets.VPS_SSH_PASSWORD }}
-          port: ${{ secrets.VPS_PORT || 22 }}
+          port: 22
           script_stop: true
           script: |
             echo "🚀 [CI/CD] Starting automated deployment on VPS..."
             
-            # Locate project directory
-            if [ -d "$HOME/semarketplace" ]; then
+            # Locate project directory (Linux is case-sensitive)
+            if [ -d "$HOME/Semarketplace" ]; then
+              cd "$HOME/Semarketplace"
+            elif [ -d "$HOME/semarketplace" ]; then
               cd "$HOME/semarketplace"
+            elif [ -d "/root/Semarketplace" ]; then
+              cd "/root/Semarketplace"
             elif [ -d "/root/semarketplace" ]; then
               cd "/root/semarketplace"
-            elif [ -d "$PWD" ]; then
-              echo "Using current directory: $PWD"
             fi
+
+            echo "📦 [CI/CD] Working directory: $(pwd)"
 
             echo "📦 [CI/CD] Pulling latest changes from main branch..."
             git pull origin main
