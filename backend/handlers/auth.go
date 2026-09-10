@@ -49,8 +49,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var u models.User
 	var isAdminInt, isVIPInt int
 	err := database.DB.QueryRow(
-		`SELECT id, name, email, password_hash, is_admin, role, is_vip, created_at 
-		 FROM users WHERE LOWER(email) = ?`,
+		database.Rebind(`SELECT id, name, email, password_hash, is_admin, role, is_vip, created_at 
+		 FROM users WHERE LOWER(email) = ?`),
 		req.Email,
 	).Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &isAdminInt, &u.Role, &isVIPInt, &u.CreatedAt)
 
@@ -102,7 +102,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var existingCount int
-	err := database.DB.QueryRow("SELECT COUNT(*) FROM users WHERE LOWER(email) = ?", req.Email).Scan(&existingCount)
+	err := database.DB.QueryRow(database.Rebind("SELECT COUNT(*) FROM users WHERE LOWER(email) = ?"), req.Email).Scan(&existingCount)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Database error: "+err.Error())
 		return
@@ -132,8 +132,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = database.DB.Exec(
-		`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		database.Rebind(`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
 		newID, req.Name, req.Email, string(hash), isAdminInt, role, 0, createdAt,
 	)
 	if err != nil {

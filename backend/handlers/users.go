@@ -75,7 +75,7 @@ func getUserByID(w http.ResponseWriter, _ *http.Request, id string) {
 	var u models.User
 	var isAdminInt, isVIPInt int
 	err := database.DB.QueryRow(
-		"SELECT id, name, email, is_admin, role, is_vip, created_at FROM users WHERE id = ?",
+		database.Rebind("SELECT id, name, email, is_admin, role, is_vip, created_at FROM users WHERE id = ?"),
 		id,
 	).Scan(&u.ID, &u.Name, &u.Email, &isAdminInt, &u.Role, &isVIPInt, &u.CreatedAt)
 
@@ -98,7 +98,7 @@ func updateUser(w http.ResponseWriter, r *http.Request, id string) {
 	var existing models.User
 	var isAdminInt, isVIPInt int
 	err := database.DB.QueryRow(
-		"SELECT id, name, email, is_admin, role, is_vip, created_at FROM users WHERE id = ?",
+		database.Rebind("SELECT id, name, email, is_admin, role, is_vip, created_at FROM users WHERE id = ?"),
 		id,
 	).Scan(&existing.ID, &existing.Name, &existing.Email, &isAdminInt, &existing.Role, &isVIPInt, &existing.CreatedAt)
 
@@ -145,7 +145,7 @@ func updateUser(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	_, err = database.DB.Exec(
-		"UPDATE users SET name = ?, email = ?, role = ?, is_admin = ?, is_vip = ? WHERE id = ?",
+		database.Rebind("UPDATE users SET name = ?, email = ?, role = ?, is_admin = ?, is_vip = ? WHERE id = ?"),
 		existing.Name, existing.Email, existing.Role, newAdminInt, newVIPInt, id,
 	)
 	if err != nil {
@@ -158,7 +158,7 @@ func updateUser(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func deleteUser(w http.ResponseWriter, _ *http.Request, id string) {
-	result, err := database.DB.Exec("DELETE FROM users WHERE id = ?", id)
+	result, err := database.DB.Exec(database.Rebind("DELETE FROM users WHERE id = ?"), id)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
 		return

@@ -93,7 +93,7 @@ func createCoupon(w http.ResponseWriter, r *http.Request) {
 
 	activeInt := 1
 	_, err := database.DB.Exec(
-		"INSERT INTO coupons (id, code, type, value, active, description) VALUES (?, ?, ?, ?, ?, ?)",
+		database.Rebind("INSERT INTO coupons (id, code, type, value, active, description) VALUES (?, ?, ?, ?, ?, ?)"),
 		c.ID, c.Code, c.Type, c.Value, activeInt, c.Description,
 	)
 	if err != nil {
@@ -122,7 +122,7 @@ func validateCoupon(w http.ResponseWriter, r *http.Request) {
 	var c models.Coupon
 	var activeInt int
 	err := database.DB.QueryRow(
-		"SELECT id, code, type, value, active, description FROM coupons WHERE code = ? AND active = 1",
+		database.Rebind("SELECT id, code, type, value, active, description FROM coupons WHERE code = ? AND active = 1"),
 		code,
 	).Scan(&c.ID, &c.Code, &c.Type, &c.Value, &activeInt, &c.Description)
 
@@ -141,7 +141,7 @@ func validateCoupon(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteCoupon(w http.ResponseWriter, _ *http.Request, id string) {
-	result, err := database.DB.Exec("DELETE FROM coupons WHERE id = ?", id)
+	result, err := database.DB.Exec(database.Rebind("DELETE FROM coupons WHERE id = ?"), id)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to delete coupon: "+err.Error())
 		return

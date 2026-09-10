@@ -90,8 +90,8 @@ func getProductByID(w http.ResponseWriter, _ *http.Request, id string) {
 	var p models.Product
 	var flashSaleInt int
 	err := database.DB.QueryRow(
-		`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
-		 FROM products WHERE id = ?`,
+		database.Rebind(`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
+		 FROM products WHERE id = ?`),
 		id,
 	).Scan(
 		&p.ID, &p.Name, &p.Price, &p.OriginalPrice, &p.Category,
@@ -131,8 +131,8 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := database.DB.Exec(
-		`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		database.Rebind(`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 		p.ID, p.Name, p.Price, p.OriginalPrice, p.Category, p.Image, p.Stock, p.Rating, p.Sold, p.Description, flashSaleInt, p.CreatedAt,
 	)
 	if err != nil {
@@ -210,8 +210,8 @@ func updateProduct(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	_, err = database.DB.Exec(
-		`UPDATE products SET name = ?, price = ?, original_price = ?, category = ?, image = ?, stock = ?, rating = ?, sold = ?, description = ?, is_flash_sale = ?
-		 WHERE id = ?`,
+		database.Rebind(`UPDATE products SET name = ?, price = ?, original_price = ?, category = ?, image = ?, stock = ?, rating = ?, sold = ?, description = ?, is_flash_sale = ?
+		 WHERE id = ?`),
 		existing.Name, existing.Price, existing.OriginalPrice, existing.Category, existing.Image, existing.Stock, existing.Rating, existing.Sold, existing.Description, newFlashSale, id,
 	)
 	if err != nil {
@@ -224,7 +224,7 @@ func updateProduct(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func deleteProduct(w http.ResponseWriter, _ *http.Request, id string) {
-	result, err := database.DB.Exec("DELETE FROM products WHERE id = ?", id)
+	result, err := database.DB.Exec(database.Rebind("DELETE FROM products WHERE id = ?"), id)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to delete product: "+err.Error())
 		return

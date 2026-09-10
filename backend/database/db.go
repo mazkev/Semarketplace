@@ -9,24 +9,64 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )
 
-var DB *sql.DB
+var (
+	DB         *sql.DB
+	IsPostgres bool
+)
+
+// Rebind converts '?' placeholders into PostgreSQL '$1', '$2', ... if connected to PostgreSQL.
+func Rebind(query string) string {
+	if !IsPostgres {
+		return query
+	}
+	var b strings.Builder
+	b.Grow(len(query) + 16)
+	idx := 1
+	for i := 0; i < len(query); i++ {
+		if query[i] == '?' {
+			b.WriteString(fmt.Sprintf("$%d", idx))
+			idx++
+		} else {
+			b.WriteByte(query[i])
+		}
+	}
+	return b.String()
+}
 
 func InitDB() (*sql.DB, error) {
-	dataDir := "./data"
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create data dir: %w", err)
-	}
+	databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL"))
+	var db *sql.DB
+	var err error
 
-	dbPath := filepath.Join(dataDir, "marketplace.db")
-	log.Printf("Connecting to SQLite database at: %s", dbPath)
+	if databaseURL != "" {
+		log.Printf("🐘 Initializing Enterprise PostgreSQL connection...")
+		db, err = sql.Open("pgx", databaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open postgres database: %w", err)
+		}
+		IsPostgres = true
 
-	db, err := sql.Open("sqlite", dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		// Enterprise connection pool tuning
+		db.SetMaxOpenConns(25)
+		db.SetMaxIdleConns(10)
+		db.SetConnMaxLifetime(5 * time.Minute)
+	} else {
+		dataDir := "./data"
+		if err := os.MkdirAll(dataDir, 0755); err != nil {
+			return nil, fmt.Errorf("failed to create data dir: %w", err)
+		}
+		dbPath := filepath.Join(dataDir, "marketplace.db")
+		log.Printf("Connecting to SQLite database at: %s", dbPath)
+		db, err = sql.Open("sqlite", dbPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open sqlite database: %w", err)
+		}
+		IsPostgres = false
 	}
 
 	if err := db.Ping(); err != nil {
@@ -37,6 +77,11 @@ func InitDB() (*sql.DB, error) {
 
 	if err := migrateSchema(db); err != nil {
 		return nil, fmt.Errorf("failed to migrate schema: %w", err)
+	}
+
+	if IsPostgres {
+		// Automatically copy data from old SQLite if PostgreSQL is empty
+		AutoMigrateFromSQLite(db)
 	}
 
 	if err := seedDefaults(db); err != nil {
@@ -51,44 +96,44 @@ func InitDB() (*sql.DB, error) {
 func migrateSchema(db *sql.DB) error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS users (
-			id TEXT PRIMARY KEY,
-			name TEXT NOT NULL,
-			email TEXT UNIQUE NOT NULL,
-			password_hash TEXT NOT NULL,
+			id VARCHAR(64) PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			email VARCHAR(255) UNIQUE NOT NULL,
+			password_hash VARCHAR(255) NOT NULL,
 			is_admin INTEGER NOT NULL DEFAULT 0,
-			role TEXT NOT NULL DEFAULT 'Customer',
+			role VARCHAR(50) NOT NULL DEFAULT 'Customer',
 			is_vip INTEGER NOT NULL DEFAULT 0,
-			created_at TEXT NOT NULL
+			created_at VARCHAR(64) NOT NULL
 		);`,
 		`CREATE TABLE IF NOT EXISTS products (
-			id TEXT PRIMARY KEY,
-			name TEXT NOT NULL,
-			price REAL NOT NULL,
-			original_price REAL NOT NULL,
-			category TEXT NOT NULL,
+			id VARCHAR(64) PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			price NUMERIC(14,2) NOT NULL,
+			original_price NUMERIC(14,2) NOT NULL,
+			category VARCHAR(100) NOT NULL,
 			image TEXT,
 			stock INTEGER NOT NULL DEFAULT 0,
-			rating REAL NOT NULL DEFAULT 0.0,
+			rating NUMERIC(4,2) NOT NULL DEFAULT 0.0,
 			sold INTEGER NOT NULL DEFAULT 0,
 			description TEXT,
 			is_flash_sale INTEGER NOT NULL DEFAULT 0,
-			created_at TEXT NOT NULL
+			created_at VARCHAR(64) NOT NULL
 		);`,
 		`CREATE TABLE IF NOT EXISTS orders (
-			id TEXT PRIMARY KEY,
-			customer_id TEXT NOT NULL,
-			customer_name TEXT NOT NULL,
-			customer_email TEXT NOT NULL,
+			id VARCHAR(64) PRIMARY KEY,
+			customer_id VARCHAR(64) NOT NULL,
+			customer_name VARCHAR(255) NOT NULL,
+			customer_email VARCHAR(255) NOT NULL,
 			items_json TEXT NOT NULL,
-			total REAL NOT NULL,
-			status TEXT NOT NULL,
-			timestamp TEXT NOT NULL
+			total NUMERIC(14,2) NOT NULL,
+			status VARCHAR(50) NOT NULL,
+			timestamp VARCHAR(64) NOT NULL
 		);`,
 		`CREATE TABLE IF NOT EXISTS coupons (
-			id TEXT PRIMARY KEY,
-			code TEXT UNIQUE NOT NULL,
-			type TEXT NOT NULL,
-			value REAL NOT NULL,
+			id VARCHAR(64) PRIMARY KEY,
+			code VARCHAR(50) UNIQUE NOT NULL,
+			type VARCHAR(50) NOT NULL,
+			value NUMERIC(14,2) NOT NULL,
 			active INTEGER NOT NULL DEFAULT 1,
 			description TEXT
 		);`,
@@ -105,12 +150,12 @@ func migrateSchema(db *sql.DB) error {
 func seedDefaults(db *sql.DB) error {
 	// Seed Admin
 	var adminCount int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", "admin@nexmart.com").Scan(&adminCount)
+	err := db.QueryRow(Rebind("SELECT COUNT(*) FROM users WHERE email = ?"), "admin@nexmart.com").Scan(&adminCount)
 	if err == nil && adminCount == 0 {
 		hash, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
 		_, err = db.Exec(
-			`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			Rebind(`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
 			"admin-001", "Super Admin", "admin@nexmart.com", string(hash), 1, "Admin", 0, time.Now().UTC().Format(time.RFC3339),
 		)
 		if err != nil {
@@ -122,12 +167,12 @@ func seedDefaults(db *sql.DB) error {
 
 	// Seed Sample Customer
 	var custCount int
-	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", "kevin@test.com").Scan(&custCount)
+	err = db.QueryRow(Rebind("SELECT COUNT(*) FROM users WHERE email = ?"), "kevin@test.com").Scan(&custCount)
 	if err == nil && custCount == 0 {
 		hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 		_, _ = db.Exec(
-			`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			Rebind(`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
 			"u-002", "Kevin Pratama", "kevin@test.com", string(hash), 0, "Customer", 1, time.Now().UTC().Format(time.RFC3339),
 		)
 	}
@@ -143,7 +188,7 @@ func seedDefaults(db *sql.DB) error {
 			{"c4", "SAVE50", "fixed", 50000.0, 1, "Rp 50.000 Flat Discount"},
 		}
 		for _, c := range coupons {
-			_, _ = db.Exec("INSERT INTO coupons (id, code, type, value, active, description) VALUES (?, ?, ?, ?, ?, ?)", c...)
+			_, _ = db.Exec(Rebind("INSERT INTO coupons (id, code, type, value, active, description) VALUES (?, ?, ?, ?, ?, ?)"), c...)
 		}
 		log.Println("Seeded default discount coupons")
 	}
@@ -169,8 +214,8 @@ func seedDefaults(db *sql.DB) error {
 		now := time.Now().UTC().Format(time.RFC3339)
 		for _, p := range products {
 			_, err = db.Exec(
-				`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at)
-				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				Rebind(`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 				p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], now,
 			)
 			if err != nil {
@@ -197,12 +242,12 @@ func syncAdminAccount(db *sql.DB) {
 	}
 
 	var existingID string
-	err = db.QueryRow("SELECT id FROM users WHERE LOWER(email) = ?", email).Scan(&existingID)
+	err = db.QueryRow(Rebind("SELECT id FROM users WHERE LOWER(email) = ?"), email).Scan(&existingID)
 	if err == sql.ErrNoRows {
 		newID := fmt.Sprintf("admin-%d", time.Now().UnixMilli())
 		_, err = db.Exec(
-			`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at)
-			 VALUES (?, 'Administrator', ?, ?, 1, 'Admin', 0, ?)`,
+			Rebind(`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at)
+			 VALUES (?, 'Administrator', ?, ?, 1, 'Admin', 0, ?)`),
 			newID, email, string(hash), time.Now().UTC().Format(time.RFC3339),
 		)
 		if err != nil {
@@ -211,7 +256,7 @@ func syncAdminAccount(db *sql.DB) {
 			log.Printf("👑 Created admin user from env: %s", email)
 		}
 	} else if err == nil {
-		_, err = db.Exec("UPDATE users SET password_hash = ?, is_admin = 1, role = 'Admin' WHERE id = ?", string(hash), existingID)
+		_, err = db.Exec(Rebind("UPDATE users SET password_hash = ?, is_admin = 1, role = 'Admin' WHERE id = ?"), string(hash), existingID)
 		if err != nil {
 			log.Printf("Warning: Failed to update admin credentials: %v", err)
 		} else {
@@ -219,4 +264,3 @@ func syncAdminAccount(db *sql.DB) {
 		}
 	}
 }
-

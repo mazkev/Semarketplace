@@ -85,8 +85,8 @@ func getOrderByID(w http.ResponseWriter, _ *http.Request, id string) {
 	var o models.Order
 	var itemsJSON string
 	err := database.DB.QueryRow(
-		`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
-		 FROM orders WHERE id = ?`,
+		database.Rebind(`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
+		 FROM orders WHERE id = ?`),
 		id,
 	).Scan(
 		&o.ID, &o.CustomerID, &o.CustomerName, &o.CustomerEmail,
@@ -136,8 +136,8 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 
 	_, err = tx.Exec(
-		`INSERT INTO orders (id, customer_id, customer_name, customer_email, items_json, total, status, timestamp) 
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		database.Rebind(`INSERT INTO orders (id, customer_id, customer_name, customer_email, items_json, total, status, timestamp) 
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
 		o.ID, o.CustomerID, o.CustomerName, o.CustomerEmail, string(itemsBytes), o.Total, o.Status, o.Timestamp,
 	)
 	if err != nil {
@@ -149,7 +149,7 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 	for _, item := range o.Items {
 		if item.ProductID != "" && item.Qty > 0 {
 			_, _ = tx.Exec(
-				`UPDATE products SET stock = MAX(0, stock - ?), sold = sold + ? WHERE id = ?`,
+				database.Rebind(`UPDATE products SET stock = MAX(0, stock - ?), sold = sold + ? WHERE id = ?`),
 				item.Qty, item.Qty, item.ProductID,
 			)
 		}
@@ -188,7 +188,7 @@ func updateOrder(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	result, err := database.DB.Exec("UPDATE orders SET status = ? WHERE id = ?", status, id)
+	result, err := database.DB.Exec(database.Rebind("UPDATE orders SET status = ? WHERE id = ?"), status, id)
 	if err != nil {
 		log.Printf("❌ [ORDER ERROR] Failed to update order %s: %v", id, err)
 		middleware.Error(w, http.StatusInternalServerError, "Failed to update order status: "+err.Error())
@@ -207,7 +207,7 @@ func updateOrder(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func deleteOrder(w http.ResponseWriter, _ *http.Request, id string) {
-	result, err := database.DB.Exec("DELETE FROM orders WHERE id = ?", id)
+	result, err := database.DB.Exec(database.Rebind("DELETE FROM orders WHERE id = ?"), id)
 	if err != nil {
 		log.Printf("❌ [ORDER ERROR] Failed to delete order %s: %v", id, err)
 		middleware.Error(w, http.StatusInternalServerError, "Failed to delete order: "+err.Error())
