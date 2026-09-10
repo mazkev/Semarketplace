@@ -59,6 +59,9 @@ func AutoMigrateFromSQLite(pgDB *sql.DB) {
 				userCount++
 			}
 		}
+		if err := userRows.Err(); err != nil {
+			log.Printf("Warning: Error iterating users during migration: %v", err)
+		}
 		log.Printf("   -> Migrated %d users", userCount)
 	}
 
@@ -79,6 +82,9 @@ func AutoMigrateFromSQLite(pgDB *sql.DB) {
 				prodCount++
 			}
 		}
+		if err := prodRows.Err(); err != nil {
+			log.Printf("Warning: Error iterating products during migration: %v", err)
+		}
 		log.Printf("   -> Migrated %d products", prodCount)
 	}
 
@@ -97,6 +103,9 @@ func AutoMigrateFromSQLite(pgDB *sql.DB) {
 				)
 				orderCount++
 			}
+		}
+		if err := orderRows.Err(); err != nil {
+			log.Printf("Warning: Error iterating orders during migration: %v", err)
 		}
 		log.Printf("   -> Migrated %d orders", orderCount)
 	}
@@ -117,6 +126,9 @@ func AutoMigrateFromSQLite(pgDB *sql.DB) {
 				)
 				couponCount++
 			}
+		}
+		if err := couponRows.Err(); err != nil {
+			log.Printf("Warning: Error iterating coupons during migration: %v", err)
 		}
 		log.Printf("   -> Migrated %d coupons", couponCount)
 	}

@@ -268,7 +268,8 @@ func syncAdminAccount(db *sql.DB) {
 
 	var existingID string
 	err = db.QueryRow(Rebind("SELECT id FROM users WHERE LOWER(email) = ?"), email).Scan(&existingID)
-	if err == sql.ErrNoRows {
+	switch err {
+	case sql.ErrNoRows:
 		newID := fmt.Sprintf("admin-%d", time.Now().UnixMilli())
 		_, err = db.Exec(
 			Rebind(`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at)
@@ -280,12 +281,14 @@ func syncAdminAccount(db *sql.DB) {
 		} else {
 			log.Printf("👑 Created admin user from env: %s", email)
 		}
-	} else if err == nil {
+	case nil:
 		_, err = db.Exec(Rebind("UPDATE users SET password_hash = ?, is_admin = 1, role = 'Admin' WHERE id = ?"), string(hash), existingID)
 		if err != nil {
 			log.Printf("Warning: Failed to update admin credentials: %v", err)
 		} else {
 			log.Printf("🔑 Successfully updated admin credentials for: %s", email)
 		}
+	default:
+		log.Printf("Warning: Failed to query existing admin: %v", err)
 	}
 }

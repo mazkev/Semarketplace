@@ -16,7 +16,7 @@ type contextKey string
 
 const (
 	UserContextKey contextKey = "jwt_user"
-	defaultSecret             = "semarketplace_super_secret_jwt_key_2026_x99"
+	defaultSecret  string     = "semarketplace_super_secret_jwt_key_2026_x99"
 )
 
 type Claims struct {
