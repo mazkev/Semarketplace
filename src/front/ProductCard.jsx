@@ -59,6 +59,7 @@ export default function ProductCard({ product, onAddToCart, onClick, wishlist = 
             alt={product.name} 
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
             loading="lazy" 
+            decoding="async"
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';

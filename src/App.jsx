@@ -1,14 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import './index.css'
 
 import { useLocalStorage } from './hooks'
 import { DEFAULT_ADMINS } from './utils'
 import { LanguageProvider } from './i18n'
 
-import CustomerAuth from './auth/CustomerAuth'
-import AdminAuth    from './auth/AdminAuth'
-import FrontApp     from './front/FrontApp'
-import BackApp      from './back/BackApp'
+// Code-split dynamic routes for optimal initial bundle size
+const CustomerAuth = lazy(() => import('./auth/CustomerAuth'))
+const AdminAuth    = lazy(() => import('./auth/AdminAuth'))
+const FrontApp     = lazy(() => import('./front/FrontApp'))
+const BackApp      = lazy(() => import('./back/BackApp'))
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-neoCream dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
+      <div className="bg-neoYellow text-black border-4 border-black dark:border-white p-6 rounded-2xl shadow-neo-xl flex items-center gap-4 animate-bounce">
+        <span className="text-3xl">⚡</span>
+        <div>
+          <div className="font-black text-sm uppercase tracking-widest">SEMARKETPLACE</div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-black/80">Loading module...</div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // Ensure the default admin always exists in localStorage
 function ensureAdmins() {
@@ -48,40 +63,48 @@ function AppContent() {
   if (path.startsWith('#/backOffice')) {
     if (adminSession) {
       return (
-        <BackApp 
-          admin={adminSession} 
-          onLogout={() => setAdminSession(null)} 
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <BackApp 
+            admin={adminSession} 
+            onLogout={() => setAdminSession(null)} 
+            darkMode={darkMode}
+            setDarkMode={setDarkMode}
+          />
+        </Suspense>
       )
     }
     return (
-      <AdminAuth 
-        onLogin={(admin) => setAdminSession(admin)} 
-        onBack={() => navigate('#/')} 
-      />
+      <Suspense fallback={<LoadingFallback />}>
+        <AdminAuth 
+          onLogin={(admin) => setAdminSession(admin)} 
+          onBack={() => navigate('#/')} 
+        />
+      </Suspense>
     )
   }
 
   // --- CUSTOMER ROUTE (Home, /) ---
   if (customerSession) {
     return (
-      <FrontApp 
-        user={customerSession} 
-        onLogout={() => setCustomerSession(null)} 
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-      />
+      <Suspense fallback={<LoadingFallback />}>
+        <FrontApp 
+          user={customerSession} 
+          onLogout={() => setCustomerSession(null)} 
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+        />
+      </Suspense>
     )
   }
 
   return (
-    <CustomerAuth 
-      onLogin={(user) => setCustomerSession(user)} 
-      darkMode={darkMode}
-      setDarkMode={setDarkMode}
-    />
+    <Suspense fallback={<LoadingFallback />}>
+      <CustomerAuth 
+        onLogin={(user) => setCustomerSession(user)} 
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+      />
+    </Suspense>
   )
 }
 
@@ -92,3 +115,4 @@ export default function App() {
     </LanguageProvider>
   )
 }
+

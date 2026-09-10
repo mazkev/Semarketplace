@@ -51,11 +51,24 @@ func handleSingleProduct(w http.ResponseWriter, r *http.Request, id string) {
 	}
 }
 
-func getAllProducts(w http.ResponseWriter, _ *http.Request) {
-	rows, err := database.DB.Query(
-		`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
-		 FROM products ORDER BY id DESC`,
-	)
+func getAllProducts(w http.ResponseWriter, r *http.Request) {
+	category := strings.TrimSpace(r.URL.Query().Get("category"))
+
+	var rows *sql.Rows
+	var err error
+
+	if category != "" && strings.ToLower(category) != "all" {
+		query := database.Rebind(
+			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
+			 FROM products WHERE category = ? ORDER BY id DESC`,
+		)
+		rows, err = database.DB.Query(query, category)
+	} else {
+		rows, err = database.DB.Query(
+			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
+			 FROM products ORDER BY id DESC`,
+		)
+	}
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to query products: "+err.Error())
 		return
@@ -83,6 +96,7 @@ func getAllProducts(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "public, max-age=15, stale-while-revalidate=30")
 	middleware.JSON(w, http.StatusOK, products)
 }
 

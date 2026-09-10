@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,11 +48,32 @@ func handleSingleOrder(w http.ResponseWriter, r *http.Request, id string) {
 	}
 }
 
-func getAllOrders(w http.ResponseWriter, _ *http.Request) {
-	rows, err := database.DB.Query(
-		`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
-		 FROM orders ORDER BY timestamp DESC`,
-	)
+func getAllOrders(w http.ResponseWriter, r *http.Request) {
+	customerID := strings.TrimSpace(r.URL.Query().Get("customerId"))
+	limit := 100
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 500 {
+			limit = parsed
+		}
+	}
+
+	var rows *sql.Rows
+	var err error
+
+	if customerID != "" {
+		query := database.Rebind(
+			`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
+			 FROM orders WHERE customer_id = ? ORDER BY timestamp DESC LIMIT ?`,
+		)
+		rows, err = database.DB.Query(query, customerID, limit)
+	} else {
+		query := database.Rebind(
+			`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
+			 FROM orders ORDER BY timestamp DESC LIMIT ?`,
+		)
+		rows, err = database.DB.Query(query, limit)
+	}
+
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to query orders: "+err.Error())
 		return

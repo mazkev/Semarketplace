@@ -55,6 +55,7 @@ func InitDB() (*sql.DB, error) {
 		db.SetMaxOpenConns(25)
 		db.SetMaxIdleConns(10)
 		db.SetConnMaxLifetime(5 * time.Minute)
+		db.SetConnMaxIdleTime(2 * time.Minute)
 	} else {
 		dataDir := "./data"
 		if err := os.MkdirAll(dataDir, 0755); err != nil {
@@ -67,6 +68,23 @@ func InitDB() (*sql.DB, error) {
 			return nil, fmt.Errorf("failed to open sqlite database: %w", err)
 		}
 		IsPostgres = false
+
+		// High concurrency SQLite PRAGMA configuration (WAL Mode + Memory Cache)
+		pragmas := []string{
+			"PRAGMA journal_mode=WAL;",
+			"PRAGMA synchronous=NORMAL;",
+			"PRAGMA cache_size=-64000;",
+			"PRAGMA busy_timeout=5000;",
+			"PRAGMA foreign_keys=ON;",
+		}
+		for _, p := range pragmas {
+			if _, err := db.Exec(p); err != nil {
+				log.Printf("Warning: failed to execute %s: %v", p, err)
+			}
+		}
+		db.SetMaxOpenConns(25)
+		db.SetMaxIdleConns(5)
+		db.SetConnMaxLifetime(10 * time.Minute)
 	}
 
 	if err := db.Ping(); err != nil {
@@ -137,6 +155,13 @@ func migrateSchema(db *sql.DB) error {
 			active INTEGER NOT NULL DEFAULT 1,
 			description TEXT
 		);`,
+		// High-performance B-Tree indexes for fast lookup and filtering
+		`CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_orders_timestamp ON orders(timestamp DESC);`,
+		`CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);`,
+		`CREATE INDEX IF NOT EXISTS idx_products_flash_sale ON products(is_flash_sale);`,
+		`CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);`,
+		`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`,
 	}
 
 	for _, q := range queries {

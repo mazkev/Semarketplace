@@ -16,10 +16,10 @@ func AnalyticsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. Query products for category distribution & count
+	// 1. Query products for category distribution & count using SQL aggregation
 	catDist := make(map[string]int)
 	var productCount int
-	prodRows, err := database.DB.Query("SELECT category FROM products")
+	prodRows, err := database.DB.Query("SELECT category, COUNT(*) FROM products GROUP BY category")
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to query products: "+err.Error())
 		return
@@ -27,9 +27,10 @@ func AnalyticsHandler(w http.ResponseWriter, r *http.Request) {
 	defer prodRows.Close()
 	for prodRows.Next() {
 		var cat string
-		if err := prodRows.Scan(&cat); err == nil {
-			productCount++
-			catDist[cat]++
+		var count int
+		if err := prodRows.Scan(&cat, &count); err == nil {
+			productCount += count
+			catDist[cat] = count
 		}
 	}
 	if err := prodRows.Err(); err != nil {
@@ -43,6 +44,9 @@ func AnalyticsHandler(w http.ResponseWriter, r *http.Request) {
 	sellerMap := make(map[string]int)
 	customerSpend := make(map[string]float64)
 	customerOrderCount := make(map[string]int)
+
+	// Direct database aggregation for revenue and order count
+	_ = database.DB.QueryRow("SELECT COALESCE(SUM(total), 0), COUNT(*) FROM orders").Scan(&totalRevenue, &orderCount)
 
 	orderRows, err := database.DB.Query("SELECT customer_id, items_json, total FROM orders")
 	if err != nil {

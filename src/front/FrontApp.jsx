@@ -13,7 +13,6 @@ import ProductDetail from './ProductDetail'
 import FrontFooter  from './FrontFooter'
 import LiveChat     from './LiveChat'
 import Toast        from '../components/Toast'
-import BackOffice   from '../back/BackApp'
 
 export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
   const [isAdmin, setIsAdmin]            = useState(false)
@@ -56,16 +55,21 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
     } catch (err) {}
   }, [])
 
+  // Fetch transactions on mount and when user navigates to orders view
+  useEffect(() => {
+    if (page === 'orders') {
+      fetchTransactions()
+    }
+  }, [page, fetchTransactions])
+
   useEffect(() => {
     fetchTransactions()
     const handleStorageChange = (e) => {
       if (e.key === 'mock_orders') fetchTransactions()
     }
     window.addEventListener('storage', handleStorageChange)
-    const interval = setInterval(fetchTransactions, 5000)
     return () => {
       window.removeEventListener('storage', handleStorageChange)
-      clearInterval(interval)
     }
   }, [fetchTransactions])
 
@@ -96,8 +100,6 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
       try {
         const prodData = await apiFetch('/products')
         setProducts(prodData)
-        const txnData = await apiFetch('/orders')
-        setTransactions(txnData)
       } catch (err) {
         showToast(err.message, 'error')
       } finally {
