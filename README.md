@@ -1,105 +1,35 @@
-# Aura Luxe - Premium Serverless Marketplace
+# SeMarketplace - Neo-Brutalism E-Commerce Platform
 
-Semarketplace is a high-performance, aesthetically premium e-commerce marketplace built as a **fully serverless, frontend-only application**. It features a dynamic product catalog hydrated from DummyJSON, persistent state via LocalStorage, and a stunning modern UI.
+![CI/CD Automated Deployment](https://github.com/mazkev/Semarketplace/actions/workflows/deploy.yml/badge.svg)
+![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
+![Design](https://img.shields.io/badge/Style-Neo--Brutalism-FFE500)
 
-![Preview](https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80)
+SeMarketplace adalah platform e-commerce berperforma tinggi dengan desain modern **Neo-Brutalism**, backend **Golang REST API**, dan database relasional skala enterprise **PostgreSQL 16**.
 
-## ✨ Key Features
+---
 
-- **💎 Premium Aesthetic**: Modern minimalist design with glassmorphism, smooth transitions, and high-quality typography.
-- **🚀 Fully Serverless**: No backend required. Uses a sophisticated Mock API layer with LocalStorage for persistence.
-- **📦 Dynamic Catalog**: Automatically hydrates a curated collection of 40+ products from DummyJSON across multiple categories.
-- **📱 Responsive & Interactive**: Fully optimized for mobile, tablet, and desktop with interactive elements (Cart, Wishlist, Reviews).
-- **🌓 Dark Mode**: Built-in system-aware dark mode support.
-- **🛒 Full E-commerce Flow**: Search, Category filtering, Cart management, Wishlist, and a simulated Checkout experience.
+## 🚀 Fitur Utama
+
+- **🎨 Neo-Brutalism Design**: Blok tegas, hard shadow, palet warna kontras tinggi, struk belanja barcode modern, dan pelacakan kurir logistik.
+- **⚡ Backend Berkecepatan Tinggi**: REST API dibangun dengan Golang standar library dan connection pooling `pgx/v5`.
+- **🐘 Database Enterprise PostgreSQL 16**: Penyimpanan transaksi dan katalog yang aman, terisolasi, dan ter-backup.
+- **🛡️ Keamanan Standar Produksi**:
+  - Autentikasi JSON Web Token (JWT HMAC-SHA256) dengan Role-Based Access Control (`RequireAdmin`).
+  - Nginx Reverse Proxy dengan Rate Limiting anti brute-force (5 req/menit pada login) dan HTTP Security Headers.
+  - Body payload limit (1 MB) anti DoS.
+  - Port backend 8080 terisolasi di private network Docker.
+- **🌐 Bilingual Support**: Alih bahasa instan Indonesia (ID) ⇄ English (EN).
+- **🤖 SE-AI Assistant**: Asisten belanja cerdas terintegrasi dengan quick prompt chips.
+- **🔄 CI/CD Otomatis**: Pipeline GitHub Actions terintegrasi untuk pengujian kode dan auto-deployment ke VPS via SSH.
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [React](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-- **Styling**: Vanilla CSS (Custom Design System)
-- **Data Source**: [DummyJSON API](https://dummyjson.com/)
-- **State Management**: React Hooks + LocalStorage
-- **Icons**: Emoji-based (Lightweight & Universal)
-
-## 🚀 Getting Started
-
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v16 or higher)
-- npm or yarn
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.commazkev/semarketplace.git
-   cd semarketplace
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up Environment Variables**
-   Create a `.env` file in the root directory:
-   ```bash
-   VITE_API_URL=https://dummyjson.com/products
-   VITE_USE_MOCK=true
-   ```
-
-4. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:5173` to view the app.
-
-## 🐳 Docker Deployment (Recommended)
-
-You can run both Frontend and Golang Backend together with persistent SQLite database using Docker Compose:
-
-```bash
-docker compose up -d --build
-```
-
-- **Frontend App**: `http://localhost:3000`
-- **Backend API**: `http://localhost:8080/api`
-- **Reverse Proxy**: Nginx automatically proxies `/api/` requests internally to the Go backend container.
-- **Data Persistence**: Database is stored in a persistent Docker volume `backend-data`.
-
-To stop containers:
-```bash
-docker compose down
-```
-
-## 📦 Cloud Deployment
-
-### Deploy to Vercel / Netlify (Frontend)
-1. Connect your GitHub repository to Vercel or Netlify.
-2. Build Command: `npm run build`
-3. Output Directory: `dist`
-4. Add environment variables:
-   - `VITE_API_URL`: URL of your deployed Go backend (e.g. `https://your-backend.onrender.com/api`)
-   - `VITE_USE_MOCK`: `false` (or `true` for standalone serverless mode)
-
-### Deploy to GitHub Pages
-1. Install the gh-pages package: `npm install gh-pages --save-dev`
-2. Add these scripts to `package.json`:
-   ```json
-   "predeploy": "npm run build",
-   "deploy": "gh-pages -d dist"
-   ```
-3. Run `npm run deploy`.
-
-## 🧠 How It Works (Mock API Layer)
-
-The app uses a custom abstraction in `src/api.js` that intercepts requests:
-- **Product Hydration**: On first load, it fetches 40 curated items from DummyJSON and stores them in `localStorage`.
-- **Persistent Store**: Orders, Cart, Wishlist, and User Reviews are all saved to the browser's `localStorage`, allowing the app to maintain state without a database.
-- **Simulated Latency**: A small artificial delay (300ms) is added to API calls to simulate real-world server responses.
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-Built with ❤️ by mazkev
+- **Frontend**: React, Vite, Vanilla CSS + Tailwind Utility Tokens
+- **Backend**: Golang, `pgx/v5`, `golang-jwt/jwt/v5`, `modernc.org/sqlite`
+- **Database**: PostgreSQL 16 Alpine
+- **Gateway**: Nginx Alpine Reverse Proxy + Rate Limiter
+- **DevOps**: Docker, Docker Compose, GitHub Actions CI/CD
