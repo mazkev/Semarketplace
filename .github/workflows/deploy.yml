@@ -1,0 +1,88 @@
+name: CI/CD Pipeline & Automated Deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 1: Test & Build Validation (Continuous Integration)
+  # -------------------------------------------------------------
+  test:
+    name: Lint & Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go Runtime
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: backend/go.sum
+
+      - name: Test & Validate Go Backend
+        run: |
+          cd backend
+          go vet ./...
+          go build -v .
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies
+        run: npm ci || npm install
+
+      - name: Build Frontend Bundle
+        run: npm run build
+
+  # -------------------------------------------------------------
+  # Job 2: Automated Deployment to VPS (Continuous Deployment)
+  # -------------------------------------------------------------
+  deploy:
+    name: Deploy to Production VPS
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_SSH_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            echo "🚀 [CI/CD] Starting automated deployment on VPS..."
+            
+            # Locate project directory
+            if [ -d "$HOME/semarketplace" ]; then
+              cd "$HOME/semarketplace"
+            elif [ -d "/root/semarketplace" ]; then
+              cd "/root/semarketplace"
+            elif [ -d "$PWD" ]; then
+              echo "Using current directory: $PWD"
+            fi
+
+            echo "📦 [CI/CD] Pulling latest changes from main branch..."
+            git pull origin main
+
+            echo "🐳 [CI/CD] Rebuilding and launching Docker containers..."
+            docker compose up -d --build
+
+            echo "🧹 [CI/CD] Cleaning dangling build cache..."
+            docker image prune -f
+
+            echo "✅ [CI/CD] Deployment completed successfully!"
+            docker compose ps
