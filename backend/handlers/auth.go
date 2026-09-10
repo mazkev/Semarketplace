@@ -72,6 +72,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token, err := middleware.GenerateToken(u)
+	if err == nil {
+		u.Token = token
+	}
+
 	log.Printf("🔐 [AUTH LOGIN] Successful login: %s (Role: %s)", u.Email, u.Role)
 	middleware.JSON(w, http.StatusOK, u)
 }
@@ -145,6 +150,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Role:      role,
 		IsVIP:     false,
 		CreatedAt: createdAt,
+	}
+
+	token, err := middleware.GenerateToken(user)
+	if err == nil {
+		user.Token = token
 	}
 
 	log.Printf("📝 [AUTH REGISTER] New user created: %s (%s) [Role: %s]", user.Email, user.Name, user.Role)

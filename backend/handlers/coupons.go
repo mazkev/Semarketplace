@@ -25,7 +25,9 @@ func CouponsHandler(w http.ResponseWriter, r *http.Request) {
 	id := path
 	if id != "" {
 		if r.Method == http.MethodDelete {
-			deleteCoupon(w, r, id)
+			middleware.RequireAdmin(func(w http.ResponseWriter, r *http.Request) {
+				deleteCoupon(w, r, id)
+			})(w, r)
 			return
 		}
 		middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -36,7 +38,7 @@ func CouponsHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		getAllCoupons(w, r)
 	case http.MethodPost:
-		createCoupon(w, r)
+		middleware.RequireAdmin(createCoupon)(w, r)
 	default:
 		middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}

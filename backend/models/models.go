@@ -45,6 +45,7 @@ type User struct {
 	Role         string `json:"role"` // Admin, Customer
 	IsVIP        bool   `json:"isVIP"`
 	CreatedAt    string `json:"createdAt"`
+	Token        string `json:"token,omitempty"`
 }
 
 type Coupon struct {

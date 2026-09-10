@@ -28,7 +28,7 @@ func ProductsHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		getAllProducts(w, r)
 	case http.MethodPost:
-		createProduct(w, r)
+		middleware.RequireAdmin(createProduct)(w, r)
 	default:
 		middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}
@@ -39,9 +39,13 @@ func handleSingleProduct(w http.ResponseWriter, r *http.Request, id string) {
 	case http.MethodGet:
 		getProductByID(w, r, id)
 	case http.MethodPut:
-		updateProduct(w, r, id)
+		middleware.RequireAdmin(func(w http.ResponseWriter, r *http.Request) {
+			updateProduct(w, r, id)
+		})(w, r)
 	case http.MethodDelete:
-		deleteProduct(w, r, id)
+		middleware.RequireAdmin(func(w http.ResponseWriter, r *http.Request) {
+			deleteProduct(w, r, id)
+		})(w, r)
 	default:
 		middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
 	}

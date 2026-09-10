@@ -216,8 +216,17 @@ export async function apiFetch(endpoint, options = {}) {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${API_BASE_URL}${cleanEndpoint}`;
 
+    // Retrieve JWT token from active admin or customer session
+    let token = null;
+    try {
+      const adminSession = JSON.parse(localStorage.getItem('nex_admin_session') || 'null');
+      const customerSession = JSON.parse(localStorage.getItem('nex_customer_session') || 'null');
+      token = adminSession?.token || customerSession?.token || localStorage.getItem('auth_token');
+    } catch {}
+
     const headers = {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...(options.headers || {})
     };
 

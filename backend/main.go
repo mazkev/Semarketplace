@@ -44,16 +44,16 @@ func main() {
 	mux.HandleFunc("/api/coupons", handlers.CouponsHandler)
 	mux.HandleFunc("/api/coupons/", handlers.CouponsHandler)
 
-	// Users routes
-	mux.HandleFunc("/api/users", handlers.UsersHandler)
-	mux.HandleFunc("/api/users/", handlers.UsersHandler)
+	// Users routes (Admin Protected)
+	mux.HandleFunc("/api/users", middleware.RequireAdmin(handlers.UsersHandler))
+	mux.HandleFunc("/api/users/", middleware.RequireAdmin(handlers.UsersHandler))
 
-	// Analytics routes
-	mux.HandleFunc("/api/analytics", handlers.AnalyticsHandler)
-	mux.HandleFunc("/api/analytics/overview", handlers.AnalyticsHandler)
+	// Analytics routes (Admin Protected)
+	mux.HandleFunc("/api/analytics", middleware.RequireAdmin(handlers.AnalyticsHandler))
+	mux.HandleFunc("/api/analytics/overview", middleware.RequireAdmin(handlers.AnalyticsHandler))
 
-	// 3. Attach CORS and Logger middleware
-	handler := middleware.Logger(middleware.CORS(mux))
+	// 3. Attach CORS, BodyLimit, and Logger middleware
+	handler := middleware.Logger(middleware.CORS(middleware.BodyLimit(mux)))
 
 	// 4. Determine Port
 	port := os.Getenv("PORT")
