@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -41,6 +42,8 @@ func InitDB() (*sql.DB, error) {
 	if err := seedDefaults(db); err != nil {
 		log.Printf("Warning: Seeding defaults encountered error: %v", err)
 	}
+
+	syncAdminAccount(db)
 
 	return db, nil
 }
@@ -179,3 +182,41 @@ func seedDefaults(db *sql.DB) error {
 
 	return nil
 }
+
+func syncAdminAccount(db *sql.DB) {
+	email := strings.TrimSpace(strings.ToLower(os.Getenv("ADMIN_EMAIL")))
+	pass := os.Getenv("ADMIN_PASSWORD")
+	if email == "" || pass == "" {
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Warning: Failed to hash admin password: %v", err)
+		return
+	}
+
+	var existingID string
+	err = db.QueryRow("SELECT id FROM users WHERE LOWER(email) = ?", email).Scan(&existingID)
+	if err == sql.ErrNoRows {
+		newID := fmt.Sprintf("admin-%d", time.Now().UnixMilli())
+		_, err = db.Exec(
+			`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at)
+			 VALUES (?, 'Administrator', ?, ?, 1, 'Admin', 0, ?)`,
+			newID, email, string(hash), time.Now().UTC().Format(time.RFC3339),
+		)
+		if err != nil {
+			log.Printf("Warning: Failed to create custom admin: %v", err)
+		} else {
+			log.Printf("👑 Created admin user from env: %s", email)
+		}
+	} else if err == nil {
+		_, err = db.Exec("UPDATE users SET password_hash = ?, is_admin = 1, role = 'Admin' WHERE id = ?", string(hash), existingID)
+		if err != nil {
+			log.Printf("Warning: Failed to update admin credentials: %v", err)
+		} else {
+			log.Printf("🔑 Successfully updated admin credentials for: %s", email)
+		}
+	}
+}
+
