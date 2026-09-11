@@ -57,11 +57,10 @@ metadata:
   labels:
     app: frontend
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
-    - port: 80
+    - port: 3000
       targetPort: 80
-      nodePort: 30080
       name: http
   selector:
     app: frontend
