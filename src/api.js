@@ -386,6 +386,32 @@ export async function apiFetch(endpoint, options = {}) {
     return saved;
   }
 
+  if (endpoint.startsWith('/wishlist')) {
+    const savedWishlist = JSON.parse(localStorage.getItem('semarket_wishlist') || localStorage.getItem('mock_wishlist') || '[]');
+    const savedProducts = JSON.parse(localStorage.getItem('mock_products') || JSON.stringify(DEFAULT_PRODUCTS));
+    if (method === 'GET') {
+      return savedWishlist;
+    }
+    if (method === 'POST') {
+      const body = JSON.parse(options.body || '{}');
+      const prodId = body.productId || body._id;
+      const product = savedProducts.find(p => (p._id || p.id) === prodId);
+      if (!product) throw new Error('Product not found');
+      const exists = savedWishlist.some(p => (p._id || p.id) === prodId);
+      const updated = exists ? savedWishlist : [product, ...savedWishlist];
+      localStorage.setItem('semarket_wishlist', JSON.stringify(updated));
+      localStorage.setItem('mock_wishlist', JSON.stringify(updated));
+      return { success: true, productId: prodId };
+    }
+    if (method === 'DELETE') {
+      const prodId = endpoint.split('/').pop();
+      const updated = savedWishlist.filter(p => (p._id || p.id) !== prodId);
+      localStorage.setItem('semarket_wishlist', JSON.stringify(updated));
+      localStorage.setItem('mock_wishlist', JSON.stringify(updated));
+      return { success: true, productId: prodId };
+    }
+  }
+
   if (endpoint.startsWith('/users')) {
     const id = endpoint.split('/')[2];
     const saved = JSON.parse(localStorage.getItem('mock_users') || '[]');

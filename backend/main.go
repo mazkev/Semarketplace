@@ -49,9 +49,13 @@ func main() {
 	mux.HandleFunc("/api/coupons", handlers.CouponsHandler)
 	mux.HandleFunc("/api/coupons/", handlers.CouponsHandler)
 
-	// Users routes (Admin Protected)
-	mux.HandleFunc("/api/users", middleware.RequireAdmin(handlers.UsersHandler))
-	mux.HandleFunc("/api/users/", middleware.RequireAdmin(handlers.UsersHandler))
+	// Wishlist routes (Protected with JWT Auth)
+	mux.HandleFunc("/api/wishlist", handlers.WishlistHandler)
+	mux.HandleFunc("/api/wishlist/", handlers.WishlistHandler)
+
+	// Users routes (Access control handled within handler)
+	mux.HandleFunc("/api/users", handlers.UsersHandler)
+	mux.HandleFunc("/api/users/", handlers.UsersHandler)
 
 	// Analytics routes (Admin Protected)
 	mux.HandleFunc("/api/analytics", middleware.RequireAdmin(handlers.AnalyticsHandler))

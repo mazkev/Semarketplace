@@ -136,16 +136,39 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
     }
   }, [showToast])
 
-  const toggleWishlist = useCallback((product) => {
-    const isFav = wishlist.some(i => i._id === product._id)
-    if (isFav) {
-      setWishlist(prev => prev.filter(i => i._id !== product._id))
-      showToast(`Removed "${product.name}" from wishlist`, 'info')
-    } else {
-      setWishlist(prev => [...prev, product])
-      showToast(`Added "${product.name}" to wishlist`, 'success')
+  // Sync wishlist from server for authenticated user
+  useEffect(() => {
+    if (user) {
+      apiFetch('/wishlist')
+        .then(serverWishlist => {
+          if (Array.isArray(serverWishlist)) {
+            setWishlist(serverWishlist)
+          }
+        })
+        .catch(() => {})
     }
-  }, [wishlist, setWishlist, showToast])
+  }, [user, setWishlist])
+
+  const toggleWishlist = useCallback(async (product) => {
+    const prodId = product._id || product.id
+    const isFav = wishlist.some(i => (i._id || i.id) === prodId)
+    if (isFav) {
+      setWishlist(prev => prev.filter(i => (i._id || i.id) !== prodId))
+      showToast(`Removed "${product.name}" from wishlist`, 'info')
+      if (user) {
+        apiFetch(`/wishlist/${prodId}`, { method: 'DELETE' }).catch(() => {})
+      }
+    } else {
+      setWishlist(prev => [product, ...prev.filter(i => (i._id || i.id) !== prodId)])
+      showToast(`Added "${product.name}" to wishlist`, 'success')
+      if (user) {
+        apiFetch('/wishlist', {
+          method: 'POST',
+          body: JSON.stringify({ productId: prodId })
+        }).catch(() => {})
+      }
+    }
+  }, [wishlist, setWishlist, showToast, user])
 
   useEffect(() => {
     const fetchData = async () => {

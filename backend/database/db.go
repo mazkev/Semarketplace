@@ -164,6 +164,13 @@ func migrateSchema(db *sql.DB) error {
 			comment TEXT NOT NULL,
 			created_at VARCHAR(64) NOT NULL
 		);`,
+		`CREATE TABLE IF NOT EXISTS wishlist (
+			id VARCHAR(64) PRIMARY KEY,
+			user_id VARCHAR(64) NOT NULL,
+			product_id VARCHAR(64) NOT NULL,
+			created_at VARCHAR(64) NOT NULL,
+			UNIQUE(user_id, product_id)
+		);`,
 		// High-performance B-Tree indexes for fast lookup and filtering
 		`CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);`,
 		`CREATE INDEX IF NOT EXISTS idx_orders_timestamp ON orders(timestamp DESC);`,
@@ -172,6 +179,7 @@ func migrateSchema(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_coupons_code ON coupons(code);`,
 		`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`,
 		`CREATE INDEX IF NOT EXISTS idx_reviews_product_id ON reviews(product_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_wishlist_user_id ON wishlist(user_id);`,
 	}
 
 	for _, q := range queries {

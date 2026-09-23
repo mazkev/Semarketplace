@@ -34,6 +34,14 @@ type Review struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type WishlistItem struct {
+	ID        string `json:"_id"`
+	IDAlias   string `json:"id,omitempty"`
+	UserID    string `json:"userId"`
+	ProductID string `json:"productId"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type Order struct {
 	ID            string      `json:"_id"`
 	IDAlias       string      `json:"id,omitempty"`
