@@ -33,9 +33,14 @@ func main() {
 		middleware.JSON(w, http.StatusOK, map[string]any{"status": "ok", "service": "semarket-backend"})
 	})
 
+	// Rate limiters for brute-force & spam protection
+	loginRateLimit := middleware.RateLimit(10, time.Minute)
+	registerRateLimit := middleware.RateLimit(5, time.Minute)
+	couponRateLimit := middleware.RateLimit(20, time.Minute)
+
 	// Auth routes
-	mux.HandleFunc("/api/auth/login", handlers.LoginHandler)
-	mux.HandleFunc("/api/auth/register", handlers.RegisterHandler)
+	mux.HandleFunc("/api/auth/login", loginRateLimit(handlers.LoginHandler))
+	mux.HandleFunc("/api/auth/register", registerRateLimit(handlers.RegisterHandler))
 
 	// Products routes
 	mux.HandleFunc("/api/products", handlers.ProductsHandler)
@@ -45,7 +50,8 @@ func main() {
 	mux.HandleFunc("/api/orders", middleware.RequireAuth(handlers.OrdersHandler))
 	mux.HandleFunc("/api/orders/", middleware.RequireAuth(handlers.OrdersHandler))
 
-	// Coupons routes
+	// Coupons routes (Validation protected against scraping)
+	mux.HandleFunc("/api/coupons/validate", couponRateLimit(handlers.CouponsHandler))
 	mux.HandleFunc("/api/coupons", handlers.CouponsHandler)
 	mux.HandleFunc("/api/coupons/", handlers.CouponsHandler)
 
