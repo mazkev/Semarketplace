@@ -69,6 +69,7 @@ func getAllCoupons(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=120")
 	middleware.JSON(w, http.StatusOK, coupons)
 }
 

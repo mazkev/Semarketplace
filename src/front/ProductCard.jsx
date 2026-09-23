@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { formatPrice } from '../utils'
 
 function StarRating({ rating }) {
@@ -30,7 +30,7 @@ function PromoBadge({ price, originalPrice, isFlashSale }) {
   )
 }
 
-export default function ProductCard({ product, onAddToCart, onClick, wishlist = [], onToggleWishlist }) {
+function ProductCard({ product, onAddToCart, onClick, wishlist = [], onToggleWishlist }) {
   const [added, setAdded] = useState(false)
   const isFav = wishlist.some(i => i._id === product._id)
 
@@ -123,3 +123,5 @@ export default function ProductCard({ product, onAddToCart, onClick, wishlist = 
     </div>
   )
 }
+
+export default memo(ProductCard)

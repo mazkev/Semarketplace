@@ -131,6 +131,7 @@ func getProductByID(w http.ResponseWriter, _ *http.Request, id string) {
 
 	p.IsFlashSale = flashSaleInt == 1
 	p.IDAlias = p.ID
+	w.Header().Set("Cache-Control", "public, max-age=15, stale-while-revalidate=30")
 	middleware.JSON(w, http.StatusOK, p)
 }
 
@@ -307,6 +308,7 @@ func getProductReviews(w http.ResponseWriter, _ *http.Request, productID string)
 		return
 	}
 
+	w.Header().Set("Cache-Control", "public, max-age=15, stale-while-revalidate=30")
 	middleware.JSON(w, http.StatusOK, reviews)
 }
 
