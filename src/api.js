@@ -447,6 +447,13 @@ export async function apiFetch(endpoint, options = {}) {
       localStorage.setItem('mock_users', JSON.stringify([...users, newUser]));
       return newUser;
     }
+    if (endpoint === '/auth/password') {
+      const body = JSON.parse(options.body || '{}');
+      if (!body.currentPassword || !body.newPassword) throw new Error('Password fields required');
+      if (body.newPassword !== body.confirmPassword) throw new Error('New password and confirmation do not match');
+      if (body.newPassword.length < 6) throw new Error('New password must be at least 6 characters long');
+      return { success: true, message: 'Password updated successfully' };
+    }
   }
   throw new Error(`Route ${endpoint} not implemented`);
 }

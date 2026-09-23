@@ -256,7 +256,7 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
         activeCategory={activeCategory} setActiveCategory={setActiveCategory}
         page={page} setPage={setPage} ordersCount={myOrders.length}
         darkMode={darkMode} setDarkMode={setDarkMode} wishlistCount={wishlist.length}
-        onOpenAdmin={() => setIsAdmin(true)}
+        onOpenAdmin={() => setIsAdmin(true)} showToast={showToast}
       />
 
       <main className="flex-1">

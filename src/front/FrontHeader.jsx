@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { CATEGORIES } from '../utils'
 import { useLanguage } from '../i18n'
+import ChangePasswordModal from './ChangePasswordModal'
 
 export default function FrontHeader({
   user, cartCount, onCartOpen, onLogout,
   search, setSearch, activeCategory, setActiveCategory,
   page, setPage, ordersCount,
   darkMode, setDarkMode, wishlistCount,
-  onOpenAdmin
+  onOpenAdmin, showToast
 }) {
   const [dropOpen, setDropOpen] = useState(false)
+  const [pwdModalOpen, setPwdModalOpen] = useState(false)
   const isDark = Boolean(darkMode)
   const initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
   const { lang, setLang, t } = useLanguage()
@@ -204,6 +206,13 @@ export default function FrontHeader({
                       </button>
                     )}
                     <button 
+                      id="change-password-menu-btn" 
+                      className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-black dark:text-white border-2 border-black hover:bg-yellow-50 dark:hover:bg-zinc-800 shadow-neo-sm transition-all"
+                      onClick={() => { setDropOpen(false); setPwdModalOpen(true) }}
+                    >
+                      🔑 {lang === 'id' ? 'Ganti Password' : 'Change Password'}
+                    </button>
+                    <button 
                       id="logout-customer-btn" 
                       className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-white bg-neoPink border-2 border-black shadow-neo-sm hover:bg-rose-500 transition-all mt-2"
                       onClick={() => { setDropOpen(false); onLogout() }}
@@ -262,6 +271,12 @@ export default function FrontHeader({
           })}
         </div>
       </div>
+
+      <ChangePasswordModal 
+        isOpen={pwdModalOpen} 
+        onClose={() => setPwdModalOpen(false)} 
+        showToast={showToast} 
+      />
     </header>
   )
 }
