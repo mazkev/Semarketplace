@@ -30,6 +30,7 @@ jobs:
         run: |
           cd backend
           go vet ./...
+          go test -v ./...
           go build -v .
 
       - name: Setup Node.js Runtime

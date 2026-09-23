@@ -209,13 +209,16 @@ func seedDefaults(db *sql.DB) error {
 		coupons := [][]any{
 			{"c1", "WELCOME10", "percentage", 10.0, 1, "10% New User Discount"},
 			{"c2", "MEGAIDR", "fixed", 500000.0, 1, "IDR 500k Flat Discount"},
-			{"c3", "NEXMART10", "percentage", 10.0, 1, "10% OFF Storewide"},
+			{"c3", "SEMARKET10", "percentage", 10.0, 1, "10% OFF Storewide"},
 			{"c4", "SAVE50", "fixed", 50000.0, 1, "Rp 50.000 Flat Discount"},
 		}
 		for _, c := range coupons {
 			_, _ = db.Exec(Rebind("INSERT INTO coupons (id, code, type, value, active, description) VALUES (?, ?, ?, ?, ?, ?)"), c...)
 		}
 		log.Println("Seeded default discount coupons")
+	} else {
+		// Automatically upgrade legacy coupon code if present
+		_, _ = db.Exec(Rebind("UPDATE coupons SET code = 'SEMARKET10' WHERE code = 'NEXMART10'"))
 	}
 
 	// Seed Products
