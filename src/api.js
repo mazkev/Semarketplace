@@ -249,6 +249,48 @@ export async function apiFetch(endpoint, options = {}) {
   await new Promise(r => setTimeout(r, 300));
   const method = options.method || 'GET';
   
+  if (endpoint.includes('/reviews')) {
+    const parts = endpoint.split('/').filter(Boolean);
+    const prodId = parts[1];
+    const reviewId = parts[3];
+    const savedReviews = JSON.parse(localStorage.getItem('mock_reviews') || '[]');
+    if (method === 'GET') {
+      return savedReviews.filter(r => r.productId === prodId);
+    }
+    if (method === 'POST') {
+      const body = JSON.parse(options.body);
+      const customerSession = JSON.parse(localStorage.getItem('semarket_customer_session') || localStorage.getItem('nex_customer_session') || 'null');
+      const newRev = {
+        _id: 'REV-' + Date.now(),
+        id: 'REV-' + Date.now(),
+        productId: prodId,
+        userId: customerSession?.user?._id || 'guest',
+        userName: customerSession?.user?.name || customerSession?.user?.email || 'Pelanggan SeMarket',
+        rating: Number(body.rating),
+        comment: body.comment,
+        createdAt: new Date().toISOString()
+      };
+      const updated = [newRev, ...savedReviews];
+      localStorage.setItem('mock_reviews', JSON.stringify(updated));
+
+      const savedProds = JSON.parse(localStorage.getItem('mock_products') || '[]');
+      const prodRevs = updated.filter(r => r.productId === prodId);
+      const avg = Math.round((prodRevs.reduce((acc, r) => acc + Number(r.rating), 0) / prodRevs.length) * 10) / 10;
+      localStorage.setItem('mock_products', JSON.stringify(savedProds.map(p => p._id === prodId ? { ...p, rating: avg } : p)));
+      return newRev;
+    }
+    if (method === 'DELETE' && reviewId) {
+      const updated = savedReviews.filter(r => (r._id || r.id) !== reviewId);
+      localStorage.setItem('mock_reviews', JSON.stringify(updated));
+
+      const savedProds = JSON.parse(localStorage.getItem('mock_products') || '[]');
+      const prodRevs = updated.filter(r => r.productId === prodId);
+      const avg = prodRevs.length ? Math.round((prodRevs.reduce((acc, r) => acc + Number(r.rating), 0) / prodRevs.length) * 10) / 10 : 5.0;
+      localStorage.setItem('mock_products', JSON.stringify(savedProds.map(p => p._id === prodId ? { ...p, rating: avg } : p)));
+      return { success: true };
+    }
+  }
+
   if (endpoint.startsWith('/products')) {
     const id = endpoint.split('/')[2];
     const saved = JSON.parse(localStorage.getItem('mock_products') || '[]');

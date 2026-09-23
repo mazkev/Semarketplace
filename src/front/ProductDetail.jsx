@@ -202,33 +202,44 @@ export default function ProductDetail({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {reviews.map((rev) => (
-                    <div key={rev._id} className="p-4 bg-white dark:bg-zinc-800 border-2 border-black dark:border-white rounded-2xl shadow-neo-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 bg-neoPink text-white border-2 border-black rounded-lg flex items-center justify-center font-black text-xs">
-                            {rev.userName?.[0] || 'U'}
+                  {reviews.map((rev) => {
+                    const reviewKey = rev._id || rev.id;
+                    const canDelete = Boolean(
+                      user && (
+                        (rev.userId && rev.userId === user._id) ||
+                        (rev.userName && rev.userName === user.name) ||
+                        user.isAdmin ||
+                        user.role === 'Admin'
+                      )
+                    );
+                    return (
+                      <div key={reviewKey} className="p-4 bg-white dark:bg-zinc-800 border-2 border-black dark:border-white rounded-2xl shadow-neo-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-neoPink text-white border-2 border-black rounded-lg flex items-center justify-center font-black text-xs">
+                              {rev.userName?.[0] || 'U'}
+                            </div>
+                            <div>
+                              <div className="text-xs font-black text-black dark:text-white uppercase">{rev.userName}</div>
+                              <div className="text-amber-500 text-xs">{'★'.repeat(rev.rating)}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-xs font-black text-black dark:text-white uppercase">{rev.userName}</div>
-                            <div className="text-amber-500 text-xs">{'★'.repeat(rev.rating)}</div>
-                          </div>
+                          {canDelete && (
+                            <button 
+                              className="text-xs p-1 hover:bg-rose-100 rounded text-rose-500"
+                              onClick={() => onDeleteReview(reviewKey)}
+                              title="Delete"
+                            >
+                              🗑️
+                            </button>
+                          )}
                         </div>
-                        {rev.userName === user.name && (
-                          <button 
-                            className="text-xs p-1 hover:bg-rose-100 rounded text-rose-500"
-                            onClick={() => onDeleteReview(rev._id)}
-                            title="Delete"
-                          >
-                            🗑️
-                          </button>
-                        )}
+                        <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-200 pl-10">
+                          {rev.comment}
+                        </p>
                       </div>
-                      <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-200 pl-10">
-                        {rev.comment}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

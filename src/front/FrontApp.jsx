@@ -37,16 +37,69 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
   const [toasts, setToasts]              = useState([])
   const showToast = useToast(setToasts)
 
-  const submitReview = useCallback((productId, review) => {
-    const newReview = { ...review, _id: 'REV-' + Date.now(), productId, date: new Date().toISOString() }
-    setReviews(prev => [newReview, ...prev])
-    showToast('Review submitted successfully!', 'success')
-  }, [setReviews, showToast])
+  // Fetch reviews whenever a product is selected
+  useEffect(() => {
+    const prodId = selectedProduct?._id || selectedProduct?.id;
+    if (page === 'detail' && prodId) {
+      apiFetch(`/products/${prodId}/reviews`)
+        .then(fetchedReviews => {
+          if (Array.isArray(fetchedReviews)) {
+            setReviews(prev => {
+              const others = prev.filter(r => r.productId !== prodId);
+              return [...fetchedReviews, ...others];
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [page, selectedProduct, setReviews]);
 
-  const deleteReview = useCallback((reviewId) => {
-    setReviews(prev => prev.filter(r => r._id !== reviewId))
-    showToast('Review removed', 'info')
-  }, [setReviews, showToast])
+  const submitReview = useCallback(async (productId, review) => {
+    try {
+      const created = await apiFetch(`/products/${productId}/reviews`, {
+        method: 'POST',
+        body: JSON.stringify({ rating: review.rating, comment: review.comment })
+      });
+      setReviews(prev => [created, ...prev.filter(r => (r._id || r.id) !== (created._id || created.id))]);
+      
+      // Refresh products so the updated rating reflects across the catalog
+      apiFetch('/products').then(data => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+          const updated = data.find(p => (p._id || p.id) === productId);
+          if (updated) setSelectedProduct(updated);
+        }
+      }).catch(() => {});
+      
+      showToast('Review submitted successfully!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Failed to submit review', 'error');
+    }
+  }, [setReviews, showToast]);
+
+  const deleteReview = useCallback(async (reviewId) => {
+    const prodId = selectedProduct?._id || selectedProduct?.id;
+    if (!prodId) return;
+    try {
+      await apiFetch(`/products/${prodId}/reviews/${reviewId}`, {
+        method: 'DELETE'
+      });
+      setReviews(prev => prev.filter(r => (r._id || r.id) !== reviewId));
+
+      // Refresh products so the recalculated rating reflects across the catalog
+      apiFetch('/products').then(data => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+          const updated = data.find(p => (p._id || p.id) === prodId);
+          if (updated) setSelectedProduct(updated);
+        }
+      }).catch(() => {});
+
+      showToast('Review removed', 'info');
+    } catch (err) {
+      showToast(err.message || 'Failed to delete review', 'error');
+    }
+  }, [selectedProduct, setReviews, showToast]);
 
   const fetchTransactions = useCallback(async () => {
     try {

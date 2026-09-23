@@ -23,6 +23,17 @@ type OrderItem struct {
 	Qty       int     `json:"qty"`
 }
 
+type Review struct {
+	ID        string `json:"_id"`
+	IDAlias   string `json:"id,omitempty"`
+	ProductID string `json:"productId"`
+	UserID    string `json:"userId"`
+	UserName  string `json:"userName"`
+	Rating    int    `json:"rating"`
+	Comment   string `json:"comment"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type Order struct {
 	ID            string      `json:"_id"`
 	IDAlias       string      `json:"id,omitempty"`

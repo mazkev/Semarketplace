@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"semarket/backend/database"
@@ -13,25 +14,32 @@ import (
 	"semarket/backend/models"
 )
 
+var reviewCounter uint64
+
 func ProductsHandler(w http.ResponseWriter, r *http.Request) {
-	// Path routing: /api/products or /api/products/{id}
+	// Path routing: /api/products, /api/products/{id}, /api/products/{id}/reviews, or /api/products/{id}/reviews/{reviewId}
 	path := strings.TrimPrefix(r.URL.Path, "/api/products")
 	path = strings.TrimPrefix(path, "/")
-	id := path
 
-	if id != "" {
-		handleSingleProduct(w, r, id)
+	if path == "" {
+		switch r.Method {
+		case http.MethodGet:
+			getAllProducts(w, r)
+		case http.MethodPost:
+			middleware.RequireAdmin(createProduct)(w, r)
+		default:
+			middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+		}
 		return
 	}
 
-	switch r.Method {
-	case http.MethodGet:
-		getAllProducts(w, r)
-	case http.MethodPost:
-		middleware.RequireAdmin(createProduct)(w, r)
-	default:
-		middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+	parts := strings.Split(path, "/")
+	if len(parts) >= 2 && parts[1] == "reviews" {
+		handleProductReviews(w, r, parts[0], parts)
+		return
 	}
+
+	handleSingleProduct(w, r, parts[0])
 }
 
 func handleSingleProduct(w http.ResponseWriter, r *http.Request, id string) {
@@ -251,3 +259,204 @@ func deleteProduct(w http.ResponseWriter, _ *http.Request, id string) {
 
 	middleware.JSON(w, http.StatusOK, map[string]any{"success": true})
 }
+
+func handleProductReviews(w http.ResponseWriter, r *http.Request, productID string, parts []string) {
+	if len(parts) == 2 {
+		switch r.Method {
+		case http.MethodGet:
+			getProductReviews(w, r, productID)
+		case http.MethodPost:
+			createProductReview(w, r, productID)
+		default:
+			middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+		}
+		return
+	}
+
+	if len(parts) == 3 && r.Method == http.MethodDelete {
+		deleteProductReview(w, r, productID, parts[2])
+		return
+	}
+
+	middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+}
+
+func getProductReviews(w http.ResponseWriter, _ *http.Request, productID string) {
+	rows, err := database.DB.Query(
+		database.Rebind("SELECT id, product_id, user_id, user_name, rating, comment, created_at FROM reviews WHERE product_id = ? ORDER BY created_at DESC"),
+		productID,
+	)
+	if err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed to query reviews: "+err.Error())
+		return
+	}
+	defer rows.Close()
+
+	reviews := make([]models.Review, 0)
+	for rows.Next() {
+		var rev models.Review
+		if err := rows.Scan(&rev.ID, &rev.ProductID, &rev.UserID, &rev.UserName, &rev.Rating, &rev.Comment, &rev.CreatedAt); err != nil {
+			middleware.Error(w, http.StatusInternalServerError, "Failed to scan review: "+err.Error())
+			return
+		}
+		rev.IDAlias = rev.ID
+		reviews = append(reviews, rev)
+	}
+	if err := rows.Err(); err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed reading reviews: "+err.Error())
+		return
+	}
+
+	middleware.JSON(w, http.StatusOK, reviews)
+}
+
+func createProductReview(w http.ResponseWriter, r *http.Request, productID string) {
+	claims := middleware.GetClaims(r)
+	if claims == nil {
+		tokenStr := middleware.ExtractToken(r)
+		if tokenStr != "" {
+			claims, _ = middleware.ValidateToken(tokenStr)
+		}
+	}
+	if claims == nil {
+		middleware.Error(w, http.StatusUnauthorized, "Authentication required to submit review")
+		return
+	}
+
+	// Verify product exists
+	var prodExists int
+	err := database.DB.QueryRow(database.Rebind("SELECT COUNT(*) FROM products WHERE id = ?"), productID).Scan(&prodExists)
+	if err != nil || prodExists == 0 {
+		middleware.Error(w, http.StatusNotFound, "Product not found")
+		return
+	}
+
+	var req struct {
+		Rating  int    `json:"rating"`
+		Comment string `json:"comment"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		middleware.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Rating < 1 || req.Rating > 5 {
+		middleware.Error(w, http.StatusBadRequest, "Rating must be between 1 and 5")
+		return
+	}
+
+	req.Comment = strings.TrimSpace(req.Comment)
+	if req.Comment == "" {
+		middleware.Error(w, http.StatusBadRequest, "Review comment cannot be empty")
+		return
+	}
+
+	// Fetch author name from claims or database
+	userName := claims.Email
+	_ = database.DB.QueryRow(database.Rebind("SELECT name FROM users WHERE id = ?"), claims.UserID).Scan(&userName)
+	if userName == "" {
+		userName = claims.Email
+	}
+
+	seq := atomic.AddUint64(&reviewCounter, 1)
+	newID := fmt.Sprintf("REV-%d-%d", time.Now().UnixNano(), seq)
+	createdAt := time.Now().UTC().Format(time.RFC3339)
+
+	_, err = database.DB.Exec(
+		database.Rebind("INSERT INTO reviews (id, product_id, user_id, user_name, rating, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"),
+		newID, productID, claims.UserID, userName, req.Rating, req.Comment, createdAt,
+	)
+	if err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed to save review: "+err.Error())
+		return
+	}
+
+	// Automatically recalculate product rating
+	updateProductAverageRating(productID)
+
+	review := models.Review{
+		ID:        newID,
+		IDAlias:   newID,
+		ProductID: productID,
+		UserID:    claims.UserID,
+		UserName:  userName,
+		Rating:    req.Rating,
+		Comment:   req.Comment,
+		CreatedAt: createdAt,
+	}
+
+	middleware.JSON(w, http.StatusCreated, review)
+}
+
+func deleteProductReview(w http.ResponseWriter, r *http.Request, productID string, reviewID string) {
+	claims := middleware.GetClaims(r)
+	if claims == nil {
+		tokenStr := middleware.ExtractToken(r)
+		if tokenStr != "" {
+			claims, _ = middleware.ValidateToken(tokenStr)
+		}
+	}
+	if claims == nil {
+		middleware.Error(w, http.StatusUnauthorized, "Authentication required to delete review")
+		return
+	}
+
+	var reviewUserID string
+	err := database.DB.QueryRow(
+		database.Rebind("SELECT user_id FROM reviews WHERE id = ? AND product_id = ?"),
+		reviewID, productID,
+	).Scan(&reviewUserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			middleware.Error(w, http.StatusNotFound, "Review not found")
+			return
+		}
+		middleware.Error(w, http.StatusInternalServerError, "Database error: "+err.Error())
+		return
+	}
+
+	if !claims.IsAdmin && reviewUserID != claims.UserID {
+		middleware.Error(w, http.StatusForbidden, "Forbidden: You cannot delete another user's review")
+		return
+	}
+
+	result, err := database.DB.Exec(
+		database.Rebind("DELETE FROM reviews WHERE id = ? AND product_id = ?"),
+		reviewID, productID,
+	)
+	if err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed to delete review: "+err.Error())
+		return
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		middleware.Error(w, http.StatusNotFound, "Review not found")
+		return
+	}
+
+	// Recalculate product rating after deletion
+	updateProductAverageRating(productID)
+
+	middleware.JSON(w, http.StatusOK, map[string]any{"success": true})
+}
+
+func updateProductAverageRating(productID string) {
+	var count int
+	var avgRating float64
+	err := database.DB.QueryRow(
+		database.Rebind("SELECT COUNT(*), COALESCE(AVG(CAST(rating AS NUMERIC)), 5.0) FROM reviews WHERE product_id = ?"),
+		productID,
+	).Scan(&count, &avgRating)
+	if err == nil {
+		if count == 0 {
+			avgRating = 5.0
+		} else {
+			avgRating = float64(int(avgRating*10+0.5)) / 10.0
+		}
+		_, _ = database.DB.Exec(
+			database.Rebind("UPDATE products SET rating = ? WHERE id = ?"),
+			avgRating, productID,
+		)
+	}
+}
+
