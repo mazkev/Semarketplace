@@ -3,7 +3,11 @@ import { useState, useCallback, useRef } from 'react'
 export function useLocalStorage(key, initialValue) {
   const [value, setInternalValue] = useState(() => {
     try {
-      const item = window.localStorage.getItem(key)
+      let item = window.localStorage.getItem(key)
+      if (!item && key.startsWith('semarket_')) {
+        const legacyKey = key.replace('semarket_', 'nex_')
+        item = window.localStorage.getItem(legacyKey)
+      }
       return item ? JSON.parse(item) : initialValue
     } catch { return initialValue }
   })

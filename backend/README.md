@@ -39,7 +39,7 @@ Server akan aktif di: `http://localhost:8080`
 ## 🔑 Akun Bawaan (Default Seed)
 
 - **Admin Portal**:
-  - Email: `admin@nexmart.com`
+  - Email: `admin@semarket.com`
   - Password: `admin123`
 - **Customer Sample**:
   - Email: `kevin@test.com`

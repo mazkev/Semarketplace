@@ -219,8 +219,8 @@ export async function apiFetch(endpoint, options = {}) {
     // Retrieve JWT token from active admin or customer session
     let token = null;
     try {
-      const adminSession = JSON.parse(localStorage.getItem('nex_admin_session') || 'null');
-      const customerSession = JSON.parse(localStorage.getItem('nex_customer_session') || 'null');
+      const adminSession = JSON.parse(localStorage.getItem('semarket_admin_session') || localStorage.getItem('nex_admin_session') || 'null');
+      const customerSession = JSON.parse(localStorage.getItem('semarket_customer_session') || localStorage.getItem('nex_customer_session') || 'null');
       token = adminSession?.token || customerSession?.token || localStorage.getItem('auth_token');
     } catch {}
 

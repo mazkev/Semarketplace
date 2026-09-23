@@ -9,7 +9,7 @@ export default function SupportManager() {
 
   const loadAllMessages = () => {
     try {
-      const allMessages = JSON.parse(localStorage.getItem('nex_chat_messages') || '[]')
+      const allMessages = JSON.parse(localStorage.getItem('semarket_chat_messages') || localStorage.getItem('nex_chat_messages') || '[]')
       // Group messages by userId
       const groups = allMessages.reduce((acc, m) => {
         if (!acc[m.userId]) {
@@ -35,7 +35,7 @@ export default function SupportManager() {
   useEffect(() => {
     loadAllMessages()
     const handleStorage = (e) => {
-      if (e.key === 'nex_chat_messages') loadAllMessages()
+      if (e.key === 'semarket_chat_messages' || e.key === 'nex_chat_messages') loadAllMessages()
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
@@ -60,9 +60,9 @@ export default function SupportManager() {
       timestamp: new Date().toISOString()
     }
 
-    const allMessages = JSON.parse(localStorage.getItem('nex_chat_messages') || '[]')
+    const allMessages = JSON.parse(localStorage.getItem('semarket_chat_messages') || localStorage.getItem('nex_chat_messages') || '[]')
     const updated = [...allMessages, newMessage]
-    localStorage.setItem('nex_chat_messages', JSON.stringify(updated))
+    localStorage.setItem('semarket_chat_messages', JSON.stringify(updated))
     
     loadAllMessages()
     setReply('')

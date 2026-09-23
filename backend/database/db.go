@@ -175,19 +175,22 @@ func migrateSchema(db *sql.DB) error {
 func seedDefaults(db *sql.DB) error {
 	// Seed Admin
 	var adminCount int
-	err := db.QueryRow(Rebind("SELECT COUNT(*) FROM users WHERE email = ?"), "admin@nexmart.com").Scan(&adminCount)
+	err := db.QueryRow(Rebind("SELECT COUNT(*) FROM users WHERE email = ?"), "admin@semarket.com").Scan(&adminCount)
 	if err == nil && adminCount == 0 {
 		hash, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
 		_, err = db.Exec(
 			Rebind(`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
 			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
-			"admin-001", "Super Admin", "admin@nexmart.com", string(hash), 1, "Admin", 0, time.Now().UTC().Format(time.RFC3339),
+			"admin-001", "Super Admin", "admin@semarket.com", string(hash), 1, "Admin", 0, time.Now().UTC().Format(time.RFC3339),
 		)
 		if err != nil {
 			log.Printf("Failed to seed admin: %v", err)
 		} else {
-			log.Println("Seeded default admin (admin@nexmart.com / admin123)")
+			log.Println("Seeded default admin (admin@semarket.com / admin123)")
 		}
+	} else {
+		// Migrate legacy default admin email if present
+		_, _ = db.Exec(Rebind("UPDATE users SET email = 'admin@semarket.com' WHERE email = 'admin@nexmart.com'"))
 	}
 
 	// Seed Sample Customer

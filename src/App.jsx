@@ -28,9 +28,9 @@ function LoadingFallback() {
 // Ensure the default admin always exists in localStorage
 function ensureAdmins() {
   try {
-    const stored = JSON.parse(localStorage.getItem('nex_admins') || 'null')
+    const stored = JSON.parse(localStorage.getItem('semarket_admins') || localStorage.getItem('nex_admins') || 'null')
     if (!stored || stored.length === 0) {
-      localStorage.setItem('nex_admins', JSON.stringify(DEFAULT_ADMINS))
+      localStorage.setItem('semarket_admins', JSON.stringify(DEFAULT_ADMINS))
     }
   } catch {}
 }
@@ -38,9 +38,9 @@ ensureAdmins()
 
 function AppContent() {
   const [path, setPath] = useState(window.location.hash || '#/')
-  const [customerSession, setCustomerSession]   = useLocalStorage('nex_customer_session', null)
-  const [adminSession, setAdminSession]         = useLocalStorage('nex_admin_session', null)
-  const [darkMode, setDarkMode]                 = useLocalStorage('nex_dark_mode', false)
+  const [customerSession, setCustomerSession]   = useLocalStorage('semarket_customer_session', null)
+  const [adminSession, setAdminSession]         = useLocalStorage('semarket_admin_session', null)
+  const [darkMode, setDarkMode]                 = useLocalStorage('semarket_dark_mode', false)
 
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add('dark')

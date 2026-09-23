@@ -62,7 +62,7 @@ export default function LiveChat({ user }) {
   // Load messages from localStorage
   const loadMessages = () => {
     try {
-      const allMessages = JSON.parse(localStorage.getItem('nex_chat_messages') || '[]')
+      const allMessages = JSON.parse(localStorage.getItem('semarket_chat_messages') || localStorage.getItem('nex_chat_messages') || '[]')
       const myMessages = allMessages.filter(m => m.userId === user._id)
       setMessages(myMessages)
     } catch (e) {
@@ -73,7 +73,7 @@ export default function LiveChat({ user }) {
   useEffect(() => {
     loadMessages()
     const handleStorage = (e) => {
-      if (e.key === 'nex_chat_messages') loadMessages()
+      if (e.key === 'semarket_chat_messages' || e.key === 'nex_chat_messages') loadMessages()
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
@@ -97,9 +97,9 @@ export default function LiveChat({ user }) {
       timestamp: new Date().toISOString()
     }
 
-    const allMessages = JSON.parse(localStorage.getItem('nex_chat_messages') || '[]')
+    const allMessages = JSON.parse(localStorage.getItem('semarket_chat_messages') || localStorage.getItem('nex_chat_messages') || '[]')
     const updated = [...allMessages, userMsg]
-    localStorage.setItem('nex_chat_messages', JSON.stringify(updated))
+    localStorage.setItem('semarket_chat_messages', JSON.stringify(updated))
     loadMessages()
     setMessage('')
 
@@ -115,8 +115,8 @@ export default function LiveChat({ user }) {
         sender: 'assistant',
         timestamp: new Date().toISOString()
       }
-      const curMessages = JSON.parse(localStorage.getItem('nex_chat_messages') || '[]')
-      localStorage.setItem('nex_chat_messages', JSON.stringify([...curMessages, botMsg]))
+      const curMessages = JSON.parse(localStorage.getItem('semarket_chat_messages') || localStorage.getItem('nex_chat_messages') || '[]')
+      localStorage.setItem('semarket_chat_messages', JSON.stringify([...curMessages, botMsg]))
       setIsTyping(false)
       loadMessages()
     }, 600)
