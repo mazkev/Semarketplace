@@ -36,11 +36,13 @@ func main() {
 	// Rate limiters for brute-force & spam protection
 	loginRateLimit := middleware.RateLimit(10, time.Minute)
 	registerRateLimit := middleware.RateLimit(5, time.Minute)
+	passwordRateLimit := middleware.RateLimit(5, time.Minute)
 	couponRateLimit := middleware.RateLimit(20, time.Minute)
 
 	// Auth routes
 	mux.HandleFunc("/api/auth/login", loginRateLimit(handlers.LoginHandler))
 	mux.HandleFunc("/api/auth/register", registerRateLimit(handlers.RegisterHandler))
+	mux.HandleFunc("/api/auth/password", passwordRateLimit(middleware.RequireAuth(handlers.ChangePasswordHandler)))
 
 	// Products routes
 	mux.HandleFunc("/api/products", handlers.ProductsHandler)

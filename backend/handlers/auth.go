@@ -155,3 +155,103 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("📝 [AUTH REGISTER] New user created: %s (%s) [Role: %s]", user.Email, user.Name, user.Role)
 	middleware.JSON(w, http.StatusCreated, user)
 }
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword     string `json:"newPassword"`
+	ConfirmPassword string `json:"confirmPassword"`
+}
+
+func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut && r.Method != http.MethodPost {
+		middleware.Error(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	claims := middleware.GetClaims(r)
+	if claims == nil {
+		tokenStr := middleware.ExtractToken(r)
+		if tokenStr != "" {
+			claims, _ = middleware.ValidateToken(tokenStr)
+		}
+	}
+	if claims == nil {
+		middleware.Error(w, http.StatusUnauthorized, "Authentication required to change password")
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		middleware.Error(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	req.CurrentPassword = strings.TrimSpace(req.CurrentPassword)
+	req.NewPassword = strings.TrimSpace(req.NewPassword)
+	req.ConfirmPassword = strings.TrimSpace(req.ConfirmPassword)
+
+	if req.CurrentPassword == "" || req.NewPassword == "" || req.ConfirmPassword == "" {
+		middleware.Error(w, http.StatusBadRequest, "All password fields are required")
+		return
+	}
+
+	if req.NewPassword != req.ConfirmPassword {
+		middleware.Error(w, http.StatusBadRequest, "New password and confirmation do not match")
+		return
+	}
+
+	if len(req.NewPassword) < 6 {
+		middleware.Error(w, http.StatusBadRequest, "New password must be at least 6 characters long")
+		return
+	}
+
+	// Fetch current password hash from database
+	var currentHash string
+	err := database.DB.QueryRow(
+		database.Rebind("SELECT password_hash FROM users WHERE id = ?"),
+		claims.UserID,
+	).Scan(&currentHash)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			middleware.Error(w, http.StatusNotFound, "User not found")
+			return
+		}
+		middleware.Error(w, http.StatusInternalServerError, "Database error: "+err.Error())
+		return
+	}
+
+	// Verify current password
+	if err := bcrypt.CompareHashAndPassword([]byte(currentHash), []byte(req.CurrentPassword)); err != nil {
+		middleware.Error(w, http.StatusBadRequest, "Current password is incorrect")
+		return
+	}
+
+	// Disallow new password matching current password
+	if err := bcrypt.CompareHashAndPassword([]byte(currentHash), []byte(req.NewPassword)); err == nil {
+		middleware.Error(w, http.StatusBadRequest, "New password cannot be the same as current password")
+		return
+	}
+
+	// Hash new password
+	newHash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed to hash new password")
+		return
+	}
+
+	// Update password in database
+	_, err = database.DB.Exec(
+		database.Rebind("UPDATE users SET password_hash = ? WHERE id = ?"),
+		string(newHash), claims.UserID,
+	)
+	if err != nil {
+		middleware.Error(w, http.StatusInternalServerError, "Failed to update password: "+err.Error())
+		return
+	}
+
+	log.Printf("🔑 [AUTH PASSWORD] Password changed successfully for user ID: %s (%s)", claims.UserID, claims.Email)
+	middleware.JSON(w, http.StatusOK, map[string]any{
+		"success": true,
+		"message": "Password updated successfully",
+	})
+}
