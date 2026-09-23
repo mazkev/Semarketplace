@@ -22,7 +22,8 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		getAllUsers(w, r)
+		// Only Admins may list all users
+		middleware.RequireAdmin(getAllUsers)(w, r)
 		return
 	}
 
@@ -43,7 +44,7 @@ func handleSingleUser(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func getAllUsers(w http.ResponseWriter, _ *http.Request) {
-	rows, err := database.DB.Query("SELECT id, name, email, is_admin, role, is_vip, created_at FROM users ORDER BY created_at DESC")
+	rows, err := database.DB.Query(database.Rebind("SELECT id, name, email, is_admin, role, is_vip, created_at FROM users ORDER BY created_at DESC"))
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to query users: "+err.Error())
 		return
@@ -71,7 +72,25 @@ func getAllUsers(w http.ResponseWriter, _ *http.Request) {
 	middleware.JSON(w, http.StatusOK, users)
 }
 
-func getUserByID(w http.ResponseWriter, _ *http.Request, id string) {
+func getUserByID(w http.ResponseWriter, r *http.Request, id string) {
+	claims := middleware.GetClaims(r)
+	if claims == nil {
+		tokenStr := middleware.ExtractToken(r)
+		if tokenStr != "" {
+			claims, _ = middleware.ValidateToken(tokenStr)
+		}
+	}
+	if claims == nil {
+		middleware.Error(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
+	// Non-admin can only access their own user data
+	if !claims.IsAdmin && claims.UserID != id {
+		middleware.Error(w, http.StatusForbidden, "Forbidden: You cannot view another user's profile")
+		return
+	}
+
 	var u models.User
 	var isAdminInt, isVIPInt int
 	err := database.DB.QueryRow(
@@ -95,6 +114,24 @@ func getUserByID(w http.ResponseWriter, _ *http.Request, id string) {
 }
 
 func updateUser(w http.ResponseWriter, r *http.Request, id string) {
+	claims := middleware.GetClaims(r)
+	if claims == nil {
+		tokenStr := middleware.ExtractToken(r)
+		if tokenStr != "" {
+			claims, _ = middleware.ValidateToken(tokenStr)
+		}
+	}
+	if claims == nil {
+		middleware.Error(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
+	// Non-admin can only update their own profile
+	if !claims.IsAdmin && claims.UserID != id {
+		middleware.Error(w, http.StatusForbidden, "Forbidden: You cannot update another user's profile")
+		return
+	}
+
 	var existing models.User
 	var isAdminInt, isVIPInt int
 	err := database.DB.QueryRow(
@@ -119,20 +156,34 @@ func updateUser(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	if name, ok := updates["name"].(string); ok && name != "" {
-		existing.Name = name
+	if name, ok := updates["name"].(string); ok && strings.TrimSpace(name) != "" {
+		existing.Name = strings.TrimSpace(name)
 	}
-	if email, ok := updates["email"].(string); ok && email != "" {
-		existing.Email = email
+	if email, ok := updates["email"].(string); ok && strings.TrimSpace(email) != "" {
+		existing.Email = strings.TrimSpace(email)
 	}
-	if role, ok := updates["role"].(string); ok && role != "" {
-		existing.Role = role
-	}
-	if isAdmin, ok := updates["isAdmin"].(bool); ok {
-		existing.IsAdmin = isAdmin
-	}
-	if isVIP, ok := updates["isVIP"].(bool); ok {
-		existing.IsVIP = isVIP
+
+	// Only admins can alter role, isAdmin, or isVIP
+	if claims.IsAdmin {
+		if role, ok := updates["role"].(string); ok && role != "" {
+			// Prevent admin from removing their own admin role
+			if id == claims.UserID && role != "Admin" {
+				middleware.Error(w, http.StatusBadRequest, "Cannot demote your own admin account")
+				return
+			}
+			existing.Role = role
+		}
+		if isAdmin, ok := updates["isAdmin"].(bool); ok {
+			// Prevent admin from revoking their own admin privileges
+			if id == claims.UserID && !isAdmin {
+				middleware.Error(w, http.StatusBadRequest, "Cannot revoke your own admin privileges")
+				return
+			}
+			existing.IsAdmin = isAdmin
+		}
+		if isVIP, ok := updates["isVIP"].(bool); ok {
+			existing.IsVIP = isVIP
+		}
 	}
 
 	newAdminInt := 0
@@ -157,7 +208,31 @@ func updateUser(w http.ResponseWriter, r *http.Request, id string) {
 	middleware.JSON(w, http.StatusOK, existing)
 }
 
-func deleteUser(w http.ResponseWriter, _ *http.Request, id string) {
+func deleteUser(w http.ResponseWriter, r *http.Request, id string) {
+	claims := middleware.GetClaims(r)
+	if claims == nil {
+		tokenStr := middleware.ExtractToken(r)
+		if tokenStr != "" {
+			claims, _ = middleware.ValidateToken(tokenStr)
+		}
+	}
+	if claims == nil {
+		middleware.Error(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
+	// Only admins can delete users
+	if !claims.IsAdmin {
+		middleware.Error(w, http.StatusForbidden, "Forbidden: Only administrators can delete users")
+		return
+	}
+
+	// Admin cannot delete their own account
+	if id == claims.UserID {
+		middleware.Error(w, http.StatusBadRequest, "Cannot delete your own active administrator account")
+		return
+	}
+
 	result, err := database.DB.Exec(database.Rebind("DELETE FROM users WHERE id = ?"), id)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to delete user: "+err.Error())
