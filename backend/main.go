@@ -41,9 +41,9 @@ func main() {
 	mux.HandleFunc("/api/products", handlers.ProductsHandler)
 	mux.HandleFunc("/api/products/", handlers.ProductsHandler)
 
-	// Orders routes
-	mux.HandleFunc("/api/orders", handlers.OrdersHandler)
-	mux.HandleFunc("/api/orders/", handlers.OrdersHandler)
+	// Orders routes (Protected with JWT Auth)
+	mux.HandleFunc("/api/orders", middleware.RequireAuth(handlers.OrdersHandler))
+	mux.HandleFunc("/api/orders/", middleware.RequireAuth(handlers.OrdersHandler))
 
 	// Coupons routes
 	mux.HandleFunc("/api/coupons", handlers.CouponsHandler)

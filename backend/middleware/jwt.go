@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"semarket/backend/models"
@@ -19,6 +21,8 @@ const (
 	defaultSecret  string     = "semarketplace_super_secret_jwt_key_2026_x99"
 )
 
+var warnJWTOnce sync.Once
+
 type Claims struct {
 	UserID  string `json:"userId"`
 	Email   string `json:"email"`
@@ -30,6 +34,9 @@ type Claims struct {
 func getJWTSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
+		warnJWTOnce.Do(func() {
+			log.Println("⚠️  [SECURITY WARNING] JWT_SECRET environment variable is not set! Using built-in default secret key. Please set JWT_SECRET for production.")
+		})
 		secret = defaultSecret
 	}
 	return []byte(secret)

@@ -118,18 +118,13 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Public registration is strictly for regular customers.
+	// Admin accounts are provisioned via environment variables (ADMIN_EMAIL/ADMIN_PASSWORD) or database seeders.
 	role := "Customer"
-	if req.IsAdmin || strings.Contains(req.Email, "admin") {
-		req.IsAdmin = true
-		role = "Admin"
-	}
+	isAdminInt := 0
 
 	newID := fmt.Sprintf("U-%d", time.Now().UnixMilli())
 	createdAt := time.Now().UTC().Format(time.RFC3339)
-	isAdminInt := 0
-	if req.IsAdmin {
-		isAdminInt = 1
-	}
 
 	_, err = database.DB.Exec(
 		database.Rebind(`INSERT INTO users (id, name, email, password_hash, is_admin, role, is_vip, created_at) 
@@ -146,7 +141,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		IDAlias:   newID,
 		Name:      req.Name,
 		Email:     req.Email,
-		IsAdmin:   req.IsAdmin,
+		IsAdmin:   false,
 		Role:      role,
 		IsVIP:     false,
 		CreatedAt: createdAt,
