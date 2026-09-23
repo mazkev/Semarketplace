@@ -59,11 +59,13 @@ function OrderRow({ order, onDelete, onTrack }) {
           
           <div className="space-y-2.5 mb-5">
             {order.items.map(item => (
-              <div key={item.productId || item.id} className="flex items-center justify-between bg-neoCream dark:bg-zinc-800 p-3 border-2 border-black shadow-neo-sm">
+              <div key={`${item.productId || item.id}-${item.variant || ''}`} className="flex items-center justify-between bg-neoCream dark:bg-zinc-800 p-3 border-2 border-black shadow-neo-sm">
                 <div className="flex items-center gap-3">
                    <div className="w-9 h-9 bg-white dark:bg-zinc-700 border border-black flex items-center justify-center text-base font-black">📦</div>
                    <div>
-                      <div className="text-xs font-black text-black dark:text-white uppercase tracking-tight">{item.name}</div>
+                      <div className="text-xs font-black text-black dark:text-white uppercase tracking-tight">
+                        {item.name} {item.variant && <span className="text-neoPink font-black">({item.variant})</span>}
+                      </div>
                       <div className="text-[10px] font-bold text-gray-500 mt-0.5">Quantity: {item.qty}</div>
                    </div>
                 </div>

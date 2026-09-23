@@ -202,9 +202,10 @@ func migrateSchema(db *sql.DB) error {
 		}
 	}
 
-	// Safely add store_id and store_name to products if not exists
+	// Safely add store_id, store_name, and variants_json to products if not exists
 	_, _ = db.Exec("ALTER TABLE products ADD COLUMN store_id VARCHAR(64) DEFAULT ''")
 	_, _ = db.Exec("ALTER TABLE products ADD COLUMN store_name VARCHAR(255) DEFAULT ''")
+	_, _ = db.Exec("ALTER TABLE products ADD COLUMN variants_json TEXT DEFAULT '[]'")
 	_, _ = db.Exec("CREATE INDEX IF NOT EXISTS idx_products_store_id ON products(store_id)")
 
 	return nil
@@ -313,6 +314,11 @@ func seedDefaults(db *sql.DB) error {
 
 	// Backfill existing products without store_id
 	_, _ = db.Exec(Rebind("UPDATE products SET store_id = 'store-official', store_name = 'SE-MARKET Official Store' WHERE store_id IS NULL OR store_id = ''"))
+
+	// Backfill default variants for catalog if empty
+	_, _ = db.Exec(Rebind("UPDATE products SET variants_json = '[\"S\", \"M\", \"L\", \"XL\"]' WHERE category = 'Men''s clothing' AND (variants_json IS NULL OR variants_json = '' OR variants_json = '[]')"))
+	_, _ = db.Exec(Rebind("UPDATE products SET variants_json = '[\"Diameter 16mm\", \"Diameter 18mm\", \"Diameter 20mm\"]' WHERE category = 'Jewelery' AND (variants_json IS NULL OR variants_json = '' OR variants_json = '[]')"))
+	_, _ = db.Exec(Rebind("UPDATE products SET variants_json = '[\"Black\", \"Silver\", \"Space Gray\"]' WHERE category = 'Electronics' AND (variants_json IS NULL OR variants_json = '' OR variants_json = '[]')"))
 
 	return nil
 }

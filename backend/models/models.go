@@ -1,21 +1,22 @@
 package models
 
 type Product struct {
-	ID            string  `json:"_id"`
-	IDAlias       string  `json:"id,omitempty"`
-	StoreID       string  `json:"storeId,omitempty"`
-	StoreName     string  `json:"storeName,omitempty"`
-	Name          string  `json:"name"`
-	Price         float64 `json:"price"`
-	OriginalPrice float64 `json:"originalPrice"`
-	Category      string  `json:"category"`
-	Image         string  `json:"image"`
-	Stock         int     `json:"stock"`
-	Rating        float64 `json:"rating"`
-	Sold          int     `json:"sold"`
-	Description   string  `json:"description"`
-	IsFlashSale   bool    `json:"isFlashSale"`
-	CreatedAt     string  `json:"createdAt,omitempty"`
+	ID            string   `json:"_id"`
+	IDAlias       string   `json:"id,omitempty"`
+	StoreID       string   `json:"storeId,omitempty"`
+	StoreName     string   `json:"storeName,omitempty"`
+	Name          string   `json:"name"`
+	Price         float64  `json:"price"`
+	OriginalPrice float64  `json:"originalPrice"`
+	Category      string   `json:"category"`
+	Image         string   `json:"image"`
+	Stock         int      `json:"stock"`
+	Rating        float64  `json:"rating"`
+	Sold          int      `json:"sold"`
+	Description   string   `json:"description"`
+	IsFlashSale   bool     `json:"isFlashSale"`
+	Variants      []string `json:"variants,omitempty"`
+	CreatedAt     string   `json:"createdAt,omitempty"`
 }
 
 type OrderItem struct {
@@ -23,6 +24,7 @@ type OrderItem struct {
 	StoreID   string  `json:"storeId,omitempty"`
 	StoreName string  `json:"storeName,omitempty"`
 	Name      string  `json:"name"`
+	Variant   string  `json:"variant,omitempty"`
 	Price     float64 `json:"price"`
 	Qty       int     `json:"qty"`
 }

@@ -39,9 +39,11 @@ export default function Receipt({ receipt, onClose, onViewOrders }) {
           {/* Item List Summary */}
           <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 no-scrollbar">
             {receipt.items.map(item => (
-              <div key={item.productId || item.id} className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-zinc-800 border-2 border-black shadow-neo-sm">
+              <div key={`${item.productId || item.id}-${item.variant || ''}`} className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-zinc-800 border-2 border-black shadow-neo-sm">
                 <div className="flex-1 pr-2">
-                  <div className="text-xs font-black text-black dark:text-white uppercase tracking-tight line-clamp-1">{item.name}</div>
+                  <div className="text-xs font-black text-black dark:text-white uppercase tracking-tight line-clamp-1">
+                    {item.name} {item.variant && <span className="text-neoPink font-black">({item.variant})</span>}
+                  </div>
                   <div className="text-[10px] font-bold text-gray-500 uppercase mt-0.5">Qty: {item.qty} &bull; {formatPrice(item.price)}</div>
                 </div>
                 <div className="text-xs font-black text-black dark:text-white bg-neoYellow border border-black px-2 py-0.5 shadow-neo-sm">

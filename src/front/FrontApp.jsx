@@ -201,20 +201,22 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
   }, [showToast])
 
   const addToCart = useCallback(product => {
+    const variant = product.variant || (product.variants && product.variants.length > 0 ? product.variants[0] : '')
+    const cartItemId = (product._id || product.id) + (variant ? '::' + variant : '')
     setCart(prev => {
-      const ex = prev.find(i => i._id === product._id)
-      if (ex) return prev.map(i => i._id === product._id ? { ...i, qty: i.qty + 1 } : i)
-      return [...prev, { ...product, qty: 1 }]
+      const ex = prev.find(i => (i.cartItemId || i._id || i.id) === cartItemId)
+      if (ex) return prev.map(i => (i.cartItemId || i._id || i.id) === cartItemId ? { ...i, qty: i.qty + 1 } : i)
+      return [...prev, { ...product, variant, cartItemId, qty: 1 }]
     })
-    showToast(`Added "${product.name}" to cart`, 'success')
+    showToast(`Added "${product.name}${variant ? ' (' + variant + ')' : ''}" to cart`, 'success')
   }, [showToast])
 
   const updateQty = useCallback((id, qty) => {
-    if (qty <= 0) setCart(prev => prev.filter(i => i._id !== id))
-    else setCart(prev => prev.map(i => i._id === id ? { ...i, qty } : i))
+    if (qty <= 0) setCart(prev => prev.filter(i => (i.cartItemId || i._id || i.id) !== id))
+    else setCart(prev => prev.map(i => (i.cartItemId || i._id || i.id) === id ? { ...i, qty } : i))
   }, [])
 
-  const removeFromCart = useCallback(id => setCart(prev => prev.filter(i => i._id !== id)), [])
+  const removeFromCart = useCallback(id => setCart(prev => prev.filter(i => (i.cartItemId || i._id || i.id) !== id)), [])
 
   const checkout = useCallback(async () => {
     if (!cart.length) return
@@ -224,7 +226,13 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
         customerId: user._id, 
         customerName: user.name,
         customerEmail: user.email,
-        items: cart.map(i => ({ productId: i._id, name: i.name, price: i.price, qty: i.qty })),
+        items: cart.map(i => ({ 
+          productId: i._id || i.id, 
+          name: i.name, 
+          price: i.price, 
+          qty: i.qty,
+          variant: i.variant || ''
+        })),
         total,
         status: 'Processing'
       }

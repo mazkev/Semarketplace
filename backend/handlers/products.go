@@ -67,13 +67,13 @@ func getAllProducts(w http.ResponseWriter, r *http.Request) {
 
 	if category != "" && strings.ToLower(category) != "all" {
 		query := database.Rebind(
-			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
+			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store'), COALESCE(variants_json, '[]') 
 			 FROM products WHERE category = ? ORDER BY id DESC`,
 		)
 		rows, err = database.DB.Query(query, category)
 	} else {
 		rows, err = database.DB.Query(
-			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
+			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store'), COALESCE(variants_json, '[]') 
 			 FROM products ORDER BY id DESC`,
 		)
 	}
@@ -87,16 +87,21 @@ func getAllProducts(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var p models.Product
 		var flashSaleInt int
+		var variantsJSON string
 		if err := rows.Scan(
 			&p.ID, &p.Name, &p.Price, &p.OriginalPrice, &p.Category,
 			&p.Image, &p.Stock, &p.Rating, &p.Sold, &p.Description,
-			&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName,
+			&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName, &variantsJSON,
 		); err != nil {
 			middleware.Error(w, http.StatusInternalServerError, "Failed to scan product: "+err.Error())
 			return
 		}
 		p.IsFlashSale = flashSaleInt == 1
 		p.IDAlias = p.ID
+		_ = json.Unmarshal([]byte(variantsJSON), &p.Variants)
+		if p.Variants == nil {
+			p.Variants = []string{}
+		}
 		products = append(products, p)
 	}
 	if err := rows.Err(); err != nil {
@@ -111,14 +116,15 @@ func getAllProducts(w http.ResponseWriter, r *http.Request) {
 func getProductByID(w http.ResponseWriter, _ *http.Request, id string) {
 	var p models.Product
 	var flashSaleInt int
+	var variantsJSON string
 	err := database.DB.QueryRow(
-		database.Rebind(`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
+		database.Rebind(`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store'), COALESCE(variants_json, '[]') 
 		 FROM products WHERE id = ?`),
 		id,
 	).Scan(
 		&p.ID, &p.Name, &p.Price, &p.OriginalPrice, &p.Category,
 		&p.Image, &p.Stock, &p.Rating, &p.Sold, &p.Description,
-		&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName,
+		&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName, &variantsJSON,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -131,6 +137,10 @@ func getProductByID(w http.ResponseWriter, _ *http.Request, id string) {
 
 	p.IsFlashSale = flashSaleInt == 1
 	p.IDAlias = p.ID
+	_ = json.Unmarshal([]byte(variantsJSON), &p.Variants)
+	if p.Variants == nil {
+		p.Variants = []string{}
+	}
 	w.Header().Set("Cache-Control", "public, max-age=15, stale-while-revalidate=30")
 	middleware.JSON(w, http.StatusOK, p)
 }
@@ -157,11 +167,15 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 		p.StoreID = "store-official"
 		p.StoreName = "SE-MARKET Official Store"
 	}
+	if p.Variants == nil {
+		p.Variants = []string{}
+	}
+	vBytes, _ := json.Marshal(p.Variants)
 
 	_, err := database.DB.Exec(
-		database.Rebind(`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, store_id, store_name)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
-		p.ID, p.Name, p.Price, p.OriginalPrice, p.Category, p.Image, p.Stock, p.Rating, p.Sold, p.Description, flashSaleInt, p.CreatedAt, p.StoreID, p.StoreName,
+		database.Rebind(`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, store_id, store_name, variants_json)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+		p.ID, p.Name, p.Price, p.OriginalPrice, p.Category, p.Image, p.Stock, p.Rating, p.Sold, p.Description, flashSaleInt, p.CreatedAt, p.StoreID, p.StoreName, string(vBytes),
 	)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to create product: "+err.Error())
@@ -175,14 +189,15 @@ func updateProduct(w http.ResponseWriter, r *http.Request, id string) {
 	// First check if product exists
 	var existing models.Product
 	var flashSaleInt int
+	var variantsJSON string
 	err := database.DB.QueryRow(
-		`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
+		`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store'), COALESCE(variants_json, '[]') 
 		 FROM products WHERE id = ?`,
 		id,
 	).Scan(
 		&existing.ID, &existing.Name, &existing.Price, &existing.OriginalPrice, &existing.Category,
 		&existing.Image, &existing.Stock, &existing.Rating, &existing.Sold, &existing.Description,
-		&flashSaleInt, &existing.CreatedAt, &existing.StoreID, &existing.StoreName,
+		&flashSaleInt, &existing.CreatedAt, &existing.StoreID, &existing.StoreName, &variantsJSON,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -193,6 +208,10 @@ func updateProduct(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 	existing.IsFlashSale = flashSaleInt == 1
+	_ = json.Unmarshal([]byte(variantsJSON), &existing.Variants)
+	if existing.Variants == nil {
+		existing.Variants = []string{}
+	}
 
 	// Decode updates onto existing
 	var updates map[string]any
@@ -231,16 +250,27 @@ func updateProduct(w http.ResponseWriter, r *http.Request, id string) {
 	if val, ok := updates["isFlashSale"].(bool); ok {
 		existing.IsFlashSale = val
 	}
+	if rawV, ok := updates["variants"]; ok {
+		if vSlice, ok := rawV.([]any); ok {
+			existing.Variants = make([]string, 0, len(vSlice))
+			for _, item := range vSlice {
+				if s, ok := item.(string); ok && strings.TrimSpace(s) != "" {
+					existing.Variants = append(existing.Variants, strings.TrimSpace(s))
+				}
+			}
+		}
+	}
 
 	newFlashSale := 0
 	if existing.IsFlashSale {
 		newFlashSale = 1
 	}
+	newVBytes, _ := json.Marshal(existing.Variants)
 
 	_, err = database.DB.Exec(
-		database.Rebind(`UPDATE products SET name = ?, price = ?, original_price = ?, category = ?, image = ?, stock = ?, rating = ?, sold = ?, description = ?, is_flash_sale = ?
+		database.Rebind(`UPDATE products SET name = ?, price = ?, original_price = ?, category = ?, image = ?, stock = ?, rating = ?, sold = ?, description = ?, is_flash_sale = ?, variants_json = ?
 		 WHERE id = ?`),
-		existing.Name, existing.Price, existing.OriginalPrice, existing.Category, existing.Image, existing.Stock, existing.Rating, existing.Sold, existing.Description, newFlashSale, id,
+		existing.Name, existing.Price, existing.OriginalPrice, existing.Category, existing.Image, existing.Stock, existing.Rating, existing.Sold, existing.Description, newFlashSale, string(newVBytes), id,
 	)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to update product: "+err.Error())

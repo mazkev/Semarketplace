@@ -91,72 +91,80 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
               </button>
             </div>
           ) : (
-            cart.map((item) => (
-              <div 
-                key={item._id} 
-                className="flex gap-4 p-3.5 bg-white dark:bg-zinc-900 border-3 border-black dark:border-white rounded-2xl shadow-neo-sm"
-              >
-                <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0 border-2 border-black dark:border-white">
-                  {item.image ? (
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover" 
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
-                      }}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-2xl">📦</div>
-                  )}
-                </div>
+            cart.map((item) => {
+              const itemId = item.cartItemId || item._id
+              return (
+                <div 
+                  key={itemId} 
+                  className="flex gap-4 p-3.5 bg-white dark:bg-zinc-900 border-3 border-black dark:border-white rounded-2xl shadow-neo-sm"
+                >
+                  <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0 border-2 border-black dark:border-white">
+                    {item.image ? (
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+                        }}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-2xl">📦</div>
+                    )}
+                  </div>
 
-                <div className="flex-1 min-w-0 flex flex-col justify-between">
-                  <div>
-                    <div className="text-xs font-black text-black dark:text-white line-clamp-1 uppercase tracking-tight">
-                      {item.name}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div>
+                      <div className="text-xs font-black text-black dark:text-white line-clamp-1 uppercase tracking-tight">
+                        {item.name}
+                      </div>
+                      {item.variant && (
+                        <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 dark:bg-zinc-800 border border-black dark:border-white text-[10px] font-black rounded-md uppercase">
+                          🏷️ Varian: {item.variant}
+                        </span>
+                      )}
+                      <div className="text-sm font-black text-black dark:text-white mt-0.5">
+                        {formatPrice(item.price)}
+                      </div>
                     </div>
-                    <div className="text-sm font-black text-black dark:text-white mt-0.5">
-                      {formatPrice(item.price)}
+                    
+                    <div className="flex items-center justify-between mt-2">
+                      {/* Stepper */}
+                      <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white rounded-lg overflow-hidden">
+                        <button 
+                          id={`qty-dec-${itemId}`} 
+                          className="w-7 h-7 flex items-center justify-center text-sm font-black text-black dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors" 
+                          onClick={() => onQtyChange(itemId, item.qty - 1)}
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center text-xs font-black text-black dark:text-white">
+                          {item.qty}
+                        </span>
+                        <button 
+                          id={`qty-inc-${itemId}`} 
+                          className="w-7 h-7 flex items-center justify-center text-sm font-black text-black dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors" 
+                          onClick={() => onQtyChange(itemId, item.qty + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Delete */}
+                      <button 
+                        id={`remove-${itemId}`} 
+                        className="w-8 h-8 flex items-center justify-center bg-white dark:bg-zinc-800 hover:bg-neoPink hover:text-white text-black dark:text-white border-2 border-black dark:border-white rounded-lg shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-xs" 
+                        onClick={() => onRemove(itemId)}
+                        title="Remove Item"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center justify-between mt-2">
-                    {/* Stepper */}
-                    <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white rounded-lg overflow-hidden">
-                      <button 
-                        id={`qty-dec-${item._id}`} 
-                        className="w-7 h-7 flex items-center justify-center text-sm font-black text-black dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors" 
-                        onClick={() => onQtyChange(item._id, item.qty - 1)}
-                      >
-                        −
-                      </button>
-                      <span className="w-8 text-center text-xs font-black text-black dark:text-white">
-                        {item.qty}
-                      </span>
-                      <button 
-                        id={`qty-inc-${item._id}`} 
-                        className="w-7 h-7 flex items-center justify-center text-sm font-black text-black dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors" 
-                        onClick={() => onQtyChange(item._id, item.qty + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    {/* Delete */}
-                    <button 
-                      id={`remove-${item._id}`} 
-                      className="w-8 h-8 flex items-center justify-center bg-white dark:bg-zinc-800 hover:bg-neoPink hover:text-white text-black dark:text-white border-2 border-black dark:border-white rounded-lg shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-xs" 
-                      onClick={() => onRemove(item._id)}
-                      title="Remove Item"
-                    >
-                      🗑️
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 

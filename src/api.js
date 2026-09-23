@@ -16,6 +16,7 @@ const DEFAULT_PRODUCTS = [
     rating: 3.9, 
     sold: 120,
     isFlashSale: true,
+    variants: ['Navy', 'Black', 'Green'],
     description: 'Your perfect pack for everyday use and walks in the forest. Stash your laptop (up to 15 inches) in the padded sleeve.'
   },
   { 
@@ -28,6 +29,7 @@ const DEFAULT_PRODUCTS = [
     stock: 25, 
     rating: 4.1, 
     sold: 259,
+    variants: ['S', 'M', 'L', 'XL'],
     description: 'Slim-fitting style, contrast raglan long sleeve, three-button henley placket, light weight & soft fabric.'
   },
   { 
@@ -41,6 +43,7 @@ const DEFAULT_PRODUCTS = [
     rating: 4.7, 
     sold: 500,
     isFlashSale: true,
+    variants: ['M', 'L', 'XL'],
     description: 'Great outerwear jackets for Spring/Autumn/Winter, suitable for many occasions.'
   },
   { 
@@ -53,6 +56,7 @@ const DEFAULT_PRODUCTS = [
     stock: 45, 
     rating: 2.1, 
     sold: 430,
+    variants: ['S', 'M', 'L'],
     description: 'Classic comfortable fit shirt for daily casual use.'
   },
   { 
@@ -65,6 +69,7 @@ const DEFAULT_PRODUCTS = [
     stock: 5, 
     rating: 4.6, 
     sold: 40,
+    variants: ['Silver', 'Gold Plated'],
     description: "From our Legends Collection, handcrafted silver dragon bracelet."
   },
   { 
@@ -77,6 +82,7 @@ const DEFAULT_PRODUCTS = [
     stock: 10, 
     rating: 3.9, 
     sold: 70,
+    variants: ['Size 6', 'Size 7', 'Size 8'],
     description: 'Satisfaction Guaranteed. Return or exchange any order within 30 days.'
   },
   { 
@@ -89,6 +95,7 @@ const DEFAULT_PRODUCTS = [
     stock: 100, 
     rating: 3.0, 
     sold: 400,
+    variants: ['Size 5', 'Size 6', 'Size 7'],
     description: 'Classic Created Wedding Engagement Solitaire Diamond Promise Ring for Her.'
   },
   { 
@@ -102,6 +109,7 @@ const DEFAULT_PRODUCTS = [
     rating: 3.3, 
     sold: 203,
     isFlashSale: true,
+    variants: ['1TB', '2TB', '4TB'],
     description: 'USB 3.0 and USB 2.0 Compatibility Fast data transfers.'
   },
   { 
@@ -113,7 +121,8 @@ const DEFAULT_PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=600&auto=format&fit=crop&q=80', 
     stock: 35, 
     rating: 2.9, 
-    sold: 470,
+    sold: 150,
+    variants: ['500GB', '1TB', '2TB'],
     description: 'Easy upgrade for faster boot-up, shutdown, application load and response.'
   },
   { 

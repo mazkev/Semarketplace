@@ -36,7 +36,8 @@ function ProductCard({ product, onAddToCart, onClick, wishlist = [], onToggleWis
 
   const handleAdd = e => {
     e.stopPropagation()
-    onAddToCart(product)
+    const variant = product.variants && product.variants.length > 0 ? product.variants[0] : ''
+    onAddToCart({ ...product, variant })
     setAdded(true)
     setTimeout(() => setAdded(false), 1200)
   }
@@ -87,9 +88,16 @@ function ProductCard({ product, onAddToCart, onClick, wishlist = [], onToggleWis
       <div className="p-4 flex flex-col flex-1 gap-2">
         <div className="flex items-center justify-between">
           <StarRating rating={product.rating || 0} />
-          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white rounded-md text-black dark:text-white">
-            {product.sold || 0} SOLD
-          </span>
+          <div className="flex items-center gap-1.5">
+            {product.variants && product.variants.length > 0 && (
+              <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-yellow-200 dark:bg-yellow-400 text-black border border-black rounded shadow-neo-sm">
+                🏷️ {product.variants.length} Varian
+              </span>
+            )}
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white rounded-md text-black dark:text-white">
+              {product.sold || 0} SOLD
+            </span>
+          </div>
         </div>
 
         <div className="text-sm font-black text-black dark:text-white uppercase tracking-tight leading-snug line-clamp-2 h-10 group-hover:text-neoPink transition-colors">

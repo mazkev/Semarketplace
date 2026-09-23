@@ -63,7 +63,8 @@ export default function SellerCenter({ store, onBack, onViewPublicStore, showToa
       stock: '10',
       image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80',
       description: '',
-      isFlashSale: false
+      isFlashSale: false,
+      variants: ''
     })
     setProdModalOpen(true)
   }
@@ -78,7 +79,8 @@ export default function SellerCenter({ store, onBack, onViewPublicStore, showToa
       stock: String(prod.stock),
       image: prod.image,
       description: prod.description || '',
-      isFlashSale: Boolean(prod.isFlashSale)
+      isFlashSale: Boolean(prod.isFlashSale),
+      variants: prod.variants && Array.isArray(prod.variants) ? prod.variants.join(', ') : ''
     })
     setProdModalOpen(true)
   }
@@ -87,6 +89,9 @@ export default function SellerCenter({ store, onBack, onViewPublicStore, showToa
     e.preventDefault()
     setSavingProd(true)
     try {
+      const variantsArr = formData.variants
+        ? formData.variants.split(',').map(s => s.trim()).filter(Boolean)
+        : []
       const payload = {
         name: formData.name.trim(),
         category: formData.category,
@@ -95,7 +100,8 @@ export default function SellerCenter({ store, onBack, onViewPublicStore, showToa
         stock: parseInt(formData.stock, 10) || 0,
         image: formData.image.trim(),
         description: formData.description.trim(),
-        isFlashSale: formData.isFlashSale
+        isFlashSale: formData.isFlashSale,
+        variants: variantsArr
       }
 
       if (editingProduct) {
@@ -300,9 +306,16 @@ export default function SellerCenter({ store, onBack, onViewPublicStore, showToa
                         </span>
                       </div>
                       <div className="p-3">
-                        <span className="text-[10px] font-black uppercase text-neoPink bg-pink-100 dark:bg-pink-950 px-2 py-0.5 rounded border border-neoPink">
-                          {p.category}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-black uppercase text-neoPink bg-pink-100 dark:bg-pink-950 px-2 py-0.5 rounded border border-neoPink">
+                            {p.category}
+                          </span>
+                          {p.variants && p.variants.length > 0 && (
+                            <span className="text-[10px] font-black uppercase text-black bg-neoYellow px-1.5 py-0.5 rounded border border-black">
+                              🏷️ {p.variants.length} Varian
+                            </span>
+                          )}
+                        </div>
                         <h4 className="font-black text-xs uppercase tracking-tight mt-1.5 line-clamp-2">{p.name}</h4>
                         <div className="text-sm font-black text-black dark:text-white mt-2">
                           {formatPrice(p.price)}
@@ -546,6 +559,28 @@ export default function SellerCenter({ store, onBack, onViewPublicStore, showToa
                   onChange={e => setFormData({ ...formData, image: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-800 border-2 border-black dark:border-white rounded-xl font-bold text-sm"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase mb-1">
+                  Varian Produk (Pisahkan dengan koma)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: S, M, L, XL atau Hitam, Putih, Navy"
+                  value={formData.variants}
+                  onChange={e => setFormData({ ...formData, variants: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-800 border-2 border-black dark:border-white rounded-xl font-bold text-sm"
+                />
+                {formData.variants && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {formData.variants.split(',').map(s => s.trim()).filter(Boolean).map((v, i) => (
+                      <span key={i} className="text-[10px] font-black uppercase px-2 py-0.5 bg-neoYellow text-black border border-black rounded shadow-neo-sm">
+                        🏷️ {v}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

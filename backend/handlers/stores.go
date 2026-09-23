@@ -339,7 +339,7 @@ func getStoreProducts(w http.ResponseWriter, _ *http.Request, idOrSlug string) {
 	}
 
 	rows, err := database.DB.Query(
-		database.Rebind(`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, ''), COALESCE(store_name, '') 
+		database.Rebind(`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, ''), COALESCE(store_name, ''), COALESCE(variants_json, '[]') 
 		 FROM products WHERE store_id = ? ORDER BY id DESC`),
 		storeID,
 	)
@@ -353,15 +353,20 @@ func getStoreProducts(w http.ResponseWriter, _ *http.Request, idOrSlug string) {
 	for rows.Next() {
 		var p models.Product
 		var flashSaleInt int
+		var variantsJSON string
 		if err := rows.Scan(
 			&p.ID, &p.Name, &p.Price, &p.OriginalPrice, &p.Category,
 			&p.Image, &p.Stock, &p.Rating, &p.Sold, &p.Description,
-			&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName,
+			&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName, &variantsJSON,
 		); err != nil {
 			continue
 		}
 		p.IsFlashSale = flashSaleInt == 1
 		p.IDAlias = p.ID
+		_ = json.Unmarshal([]byte(variantsJSON), &p.Variants)
+		if p.Variants == nil {
+			p.Variants = []string{}
+		}
 		products = append(products, p)
 	}
 

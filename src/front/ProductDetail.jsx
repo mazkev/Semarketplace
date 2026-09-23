@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { formatPrice } from '../utils'
 
 export default function ProductDetail({ 
@@ -7,12 +7,17 @@ export default function ProductDetail({
   onSelectStore
 }) {
   const [qty, setQty] = useState(1)
+  const [selectedVariant, setSelectedVariant] = useState(product?.variants?.[0] || '')
+
+  useEffect(() => {
+    setSelectedVariant(product?.variants?.[0] || '')
+  }, [product])
 
   if (!product) return null
 
   const handleAddCart = () => {
     for (let i = 0; i < qty; i++) {
-      onAddToCart(product)
+      onAddToCart({ ...product, variant: selectedVariant })
     }
   }
 
@@ -121,7 +126,7 @@ export default function ProductDetail({
             </div>
 
             {/* Description */}
-            <div className="mb-8">
+            <div className="mb-6">
               <h3 className="text-xs font-black text-black dark:text-white uppercase tracking-wider mb-2">
                 PRODUCT DETAILS & SPECS
               </h3>
@@ -129,6 +134,41 @@ export default function ProductDetail({
                 {product.description || "Crafted for performance and everyday durability. Authentic factory quality with full warranty protection."}
               </p>
             </div>
+
+            {/* Product Variants (Size / Color) */}
+            {product.variants && product.variants.length > 0 && (
+              <div className="mb-6 p-4 bg-yellow-50/50 dark:bg-zinc-800/50 border-2 border-black dark:border-white rounded-2xl">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
+                    <span>🏷️</span> PILIH VARIAN / UKURAN:
+                  </span>
+                  {selectedVariant && (
+                    <span className="text-xs font-black uppercase text-neoPink bg-pink-100 dark:bg-pink-950 px-2 py-0.5 rounded border border-neoPink">
+                      Terpilih: {selectedVariant}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.map((v) => {
+                    const isSelected = selectedVariant === v
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setSelectedVariant(v)}
+                        className={`px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all select-none ${
+                          isSelected
+                            ? 'bg-neoYellow text-black border-3 border-black shadow-neo-sm font-black -translate-x-0.5 -translate-y-0.5'
+                            : 'bg-white dark:bg-zinc-800 text-black dark:text-white border-2 border-black dark:border-white font-bold hover:bg-yellow-50 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        {v}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Quantity and Actions */}
             <div className="mt-auto space-y-4 pt-6 border-t-3 border-black dark:border-white">
