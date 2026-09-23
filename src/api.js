@@ -455,5 +455,78 @@ export async function apiFetch(endpoint, options = {}) {
       return { success: true, message: 'Password updated successfully' };
     }
   }
+
+  if (endpoint.startsWith('/stores')) {
+    const stores = JSON.parse(localStorage.getItem('mock_stores') || '[]');
+    if (endpoint === '/stores/my-store') {
+      if (method === 'GET') {
+        const store = stores[0] || null;
+        if (!store) throw new Error('Store not found');
+        return store;
+      }
+      if (method === 'PUT') {
+        const updates = JSON.parse(options.body || '{}');
+        const updated = { ...stores[0], ...updates };
+        localStorage.setItem('mock_stores', JSON.stringify([updated, ...stores.slice(1)]));
+        return updated;
+      }
+    }
+    if (endpoint === '/stores' && method === 'POST') {
+      const body = JSON.parse(options.body || '{}');
+      const newStore = {
+        _id: 'store-' + Date.now(),
+        name: body.name,
+        slug: (body.name || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        description: body.description || '',
+        city: body.city || 'Indonesia',
+        logo: body.logo || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=150&auto=format&fit=crop&q=80',
+        banner: body.banner || 'https://images.unsplash.com/photo-1555421689-491a97ff2040?w=1200&auto=format&fit=crop&q=80',
+        isVerified: true,
+        createdAt: new Date().toISOString()
+      };
+      localStorage.setItem('mock_stores', JSON.stringify([...stores, newStore]));
+      return newStore;
+    }
+    if (endpoint.includes('/products')) {
+      const savedProducts = JSON.parse(localStorage.getItem('mock_products') || JSON.stringify(DEFAULT_PRODUCTS));
+      return savedProducts;
+    }
+    const store = stores[0] || {
+      _id: 'store-official',
+      name: 'SE-MARKET Official Store',
+      slug: 'semarket-official',
+      city: 'Jakarta Pusat',
+      isVerified: true
+    };
+    return store;
+  }
+
+  if (endpoint.startsWith('/seller')) {
+    const savedProducts = JSON.parse(localStorage.getItem('mock_products') || JSON.stringify(DEFAULT_PRODUCTS));
+    if (endpoint === '/seller/products') {
+      if (method === 'GET') return savedProducts.slice(0, 5);
+      if (method === 'POST') {
+        const body = JSON.parse(options.body || '{}');
+        const newProd = { ...body, _id: 'P-' + Date.now(), rating: 5.0, sold: 0 };
+        localStorage.setItem('mock_products', JSON.stringify([newProd, ...savedProducts]));
+        return newProd;
+      }
+    }
+    if (endpoint.startsWith('/seller/products/') && (method === 'PUT' || method === 'DELETE')) {
+      const prodId = endpoint.split('/').pop();
+      if (method === 'DELETE') {
+        localStorage.setItem('mock_products', JSON.stringify(savedProducts.filter(p => (p._id || p.id) !== prodId)));
+        return { success: true };
+      }
+      const updates = JSON.parse(options.body || '{}');
+      const updated = savedProducts.map(p => (p._id || p.id) === prodId ? { ...p, ...updates } : p);
+      localStorage.setItem('mock_products', JSON.stringify(updated));
+      return updated.find(p => (p._id || p.id) === prodId);
+    }
+    if (endpoint === '/seller/orders') {
+      return [];
+    }
+  }
+
   throw new Error(`Route ${endpoint} not implemented`);
 }

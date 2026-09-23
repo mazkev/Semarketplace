@@ -61,6 +61,14 @@ func main() {
 	mux.HandleFunc("/api/wishlist", handlers.WishlistHandler)
 	mux.HandleFunc("/api/wishlist/", handlers.WishlistHandler)
 
+	// Store & Multi-Vendor routes
+	mux.HandleFunc("/api/stores", handlers.StoresHandler)
+	mux.HandleFunc("/api/stores/", handlers.StoresHandler)
+
+	// Seller Center routes (Protected with JWT Auth)
+	mux.HandleFunc("/api/seller", middleware.RequireAuth(handlers.SellerHandler))
+	mux.HandleFunc("/api/seller/", middleware.RequireAuth(handlers.SellerHandler))
+
 	// Users routes (Access control handled within handler)
 	mux.HandleFunc("/api/users", handlers.UsersHandler)
 	mux.HandleFunc("/api/users/", handlers.UsersHandler)

@@ -13,6 +13,9 @@ import ProductDetail from './ProductDetail'
 import FrontFooter  from './FrontFooter'
 import LiveChat     from './LiveChat'
 import Toast        from '../components/Toast'
+import OpenStoreModal from './OpenStoreModal'
+import SellerCenter   from './SellerCenter'
+import StoreProfile   from './StoreProfile'
 
 export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
   const [isAdmin, setIsAdmin]            = useState(false)
@@ -27,6 +30,18 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
   const [receipt, setReceipt]            = useState(null)
   const [page, setPage]                  = useState('shop') 
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [myStore, setMyStore]            = useState(null)
+  const [openStoreModal, setOpenStoreModal] = useState(false)
+  const [selectedStoreSlug, setSelectedStoreSlug] = useState(null)
+
+  // Fetch caller's store on mount or user change
+  useEffect(() => {
+    if (user?._id) {
+      apiFetch('/stores/my-store')
+        .then(store => setMyStore(store))
+        .catch(() => setMyStore(null))
+    }
+  }, [user?._id])
 
   // Auto-scroll to top on page navigation
   useEffect(() => {
@@ -257,14 +272,29 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
         page={page} setPage={setPage} ordersCount={myOrders.length}
         darkMode={darkMode} setDarkMode={setDarkMode} wishlistCount={wishlist.length}
         onOpenAdmin={() => setIsAdmin(true)} showToast={showToast}
+        myStore={myStore}
+        onOpenStoreModal={() => setOpenStoreModal(true)}
+        onGoToSeller={() => setPage('seller')}
       />
 
       <main className="flex-1">
         {page === 'shop' && <Storefront products={products} loading={loading} onAddToCart={addToCart} search={search} setSearch={setSearch} activeCategory={activeCategory} setActiveCategory={setActiveCategory} wishlist={wishlist} onToggleWishlist={toggleWishlist} onSelectProduct={(p) => { setSelectedProduct(p); setPage('detail') }} />}
         {page === 'wishlist' && <Storefront products={wishlist} onAddToCart={addToCart} title="My Wishlist" wishlist={wishlist} onToggleWishlist={toggleWishlist} onSelectProduct={(p) => { setSelectedProduct(p); setPage('detail') }} />}
-        {page === 'detail' && <ProductDetail product={selectedProduct} onBack={() => setPage('shop')} onAddToCart={addToCart} wishlist={wishlist} onToggleWishlist={toggleWishlist} reviews={reviews.filter(r => r.productId === selectedProduct?._id)} onSubmitReview={(rev) => submitReview(selectedProduct?._id, rev)} onDeleteReview={deleteReview} user={user} />}
+        {page === 'detail' && <ProductDetail product={selectedProduct} onBack={() => setPage('shop')} onAddToCart={addToCart} wishlist={wishlist} onToggleWishlist={toggleWishlist} reviews={reviews.filter(r => r.productId === selectedProduct?._id)} onSubmitReview={(rev) => submitReview(selectedProduct?._id, rev)} onDeleteReview={deleteReview} user={user} onSelectStore={(slug) => { setSelectedStoreSlug(slug); setPage('store-detail') }} />}
         {page === 'orders' && <MyOrders orders={myOrders} onDelete={deleteOrder} />}
+        {page === 'seller' && <SellerCenter store={myStore} onBack={() => setPage('shop')} onViewPublicStore={(slug) => { setSelectedStoreSlug(slug); setPage('store-detail') }} showToast={showToast} />}
+        {page === 'store-detail' && <StoreProfile slug={selectedStoreSlug} onBack={() => setPage('shop')} onAddToCart={addToCart} onSelectProduct={(p) => { setSelectedProduct(p); setPage('detail') }} wishlist={wishlist} onToggleWishlist={toggleWishlist} />}
       </main>
+
+      <OpenStoreModal
+        isOpen={openStoreModal}
+        onClose={() => setOpenStoreModal(false)}
+        onStoreCreated={(newStore) => {
+          setMyStore(newStore)
+          setPage('seller')
+        }}
+        showToast={showToast}
+      />
 
       {isAdmin && (
         <div className="fixed inset-0 z-[100] animate-fade-in">

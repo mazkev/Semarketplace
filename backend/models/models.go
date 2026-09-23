@@ -3,6 +3,8 @@ package models
 type Product struct {
 	ID            string  `json:"_id"`
 	IDAlias       string  `json:"id,omitempty"`
+	StoreID       string  `json:"storeId,omitempty"`
+	StoreName     string  `json:"storeName,omitempty"`
 	Name          string  `json:"name"`
 	Price         float64 `json:"price"`
 	OriginalPrice float64 `json:"originalPrice"`
@@ -18,9 +20,25 @@ type Product struct {
 
 type OrderItem struct {
 	ProductID string  `json:"productId"`
+	StoreID   string  `json:"storeId,omitempty"`
+	StoreName string  `json:"storeName,omitempty"`
 	Name      string  `json:"name"`
 	Price     float64 `json:"price"`
 	Qty       int     `json:"qty"`
+}
+
+type Store struct {
+	ID          string `json:"_id"`
+	IDAlias     string `json:"id,omitempty"`
+	UserID      string `json:"userId"`
+	Name        string `json:"name"`
+	Slug        string `json:"slug"`
+	Description string `json:"description"`
+	City        string `json:"city"`
+	Logo        string `json:"logo"`
+	Banner      string `json:"banner"`
+	IsVerified  bool   `json:"isVerified"`
+	CreatedAt   string `json:"createdAt"`
 }
 
 type Review struct {

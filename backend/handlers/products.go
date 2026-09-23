@@ -67,13 +67,13 @@ func getAllProducts(w http.ResponseWriter, r *http.Request) {
 
 	if category != "" && strings.ToLower(category) != "all" {
 		query := database.Rebind(
-			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
+			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
 			 FROM products WHERE category = ? ORDER BY id DESC`,
 		)
 		rows, err = database.DB.Query(query, category)
 	} else {
 		rows, err = database.DB.Query(
-			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
+			`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
 			 FROM products ORDER BY id DESC`,
 		)
 	}
@@ -90,7 +90,7 @@ func getAllProducts(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(
 			&p.ID, &p.Name, &p.Price, &p.OriginalPrice, &p.Category,
 			&p.Image, &p.Stock, &p.Rating, &p.Sold, &p.Description,
-			&flashSaleInt, &p.CreatedAt,
+			&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName,
 		); err != nil {
 			middleware.Error(w, http.StatusInternalServerError, "Failed to scan product: "+err.Error())
 			return
@@ -112,13 +112,13 @@ func getProductByID(w http.ResponseWriter, _ *http.Request, id string) {
 	var p models.Product
 	var flashSaleInt int
 	err := database.DB.QueryRow(
-		database.Rebind(`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
+		database.Rebind(`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
 		 FROM products WHERE id = ?`),
 		id,
 	).Scan(
 		&p.ID, &p.Name, &p.Price, &p.OriginalPrice, &p.Category,
 		&p.Image, &p.Stock, &p.Rating, &p.Sold, &p.Description,
-		&flashSaleInt, &p.CreatedAt,
+		&flashSaleInt, &p.CreatedAt, &p.StoreID, &p.StoreName,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -153,10 +153,15 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 		flashSaleInt = 1
 	}
 
+	if p.StoreID == "" {
+		p.StoreID = "store-official"
+		p.StoreName = "SE-MARKET Official Store"
+	}
+
 	_, err := database.DB.Exec(
-		database.Rebind(`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
-		p.ID, p.Name, p.Price, p.OriginalPrice, p.Category, p.Image, p.Stock, p.Rating, p.Sold, p.Description, flashSaleInt, p.CreatedAt,
+		database.Rebind(`INSERT INTO products (id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, store_id, store_name)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+		p.ID, p.Name, p.Price, p.OriginalPrice, p.Category, p.Image, p.Stock, p.Rating, p.Sold, p.Description, flashSaleInt, p.CreatedAt, p.StoreID, p.StoreName,
 	)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to create product: "+err.Error())
@@ -171,13 +176,13 @@ func updateProduct(w http.ResponseWriter, r *http.Request, id string) {
 	var existing models.Product
 	var flashSaleInt int
 	err := database.DB.QueryRow(
-		`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at 
+		`SELECT id, name, price, original_price, category, image, stock, rating, sold, description, is_flash_sale, created_at, COALESCE(store_id, 'store-official'), COALESCE(store_name, 'SE-MARKET Official Store') 
 		 FROM products WHERE id = ?`,
 		id,
 	).Scan(
 		&existing.ID, &existing.Name, &existing.Price, &existing.OriginalPrice, &existing.Category,
 		&existing.Image, &existing.Stock, &existing.Rating, &existing.Sold, &existing.Description,
-		&flashSaleInt, &existing.CreatedAt,
+		&flashSaleInt, &existing.CreatedAt, &existing.StoreID, &existing.StoreName,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {

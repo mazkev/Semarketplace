@@ -8,7 +8,8 @@ export default function FrontHeader({
   search, setSearch, activeCategory, setActiveCategory,
   page, setPage, ordersCount,
   darkMode, setDarkMode, wishlistCount,
-  onOpenAdmin, showToast
+  onOpenAdmin, showToast,
+  myStore, onOpenStoreModal, onGoToSeller
 }) {
   const [dropOpen, setDropOpen] = useState(false)
   const [pwdModalOpen, setPwdModalOpen] = useState(false)
@@ -84,6 +85,27 @@ export default function FrontHeader({
           >
             ❤️ {t('wishlist')} {wishlistCount > 0 && `(${wishlistCount})`}
           </button>
+          {myStore ? (
+            <button
+              id="seller-center-nav-btn"
+              onClick={onGoToSeller}
+              className={`px-3.5 py-2 border-2 border-black text-xs font-black uppercase tracking-wider transition-all shadow-neo-sm ${
+                page === 'seller'
+                  ? 'bg-neoGreen text-black translate-x-0.5 translate-y-0.5 shadow-none'
+                  : 'bg-emerald-100 hover:bg-neoGreen text-black'
+              }`}
+            >
+              🏬 Toko Saya
+            </button>
+          ) : (
+            <button
+              id="open-store-nav-btn"
+              onClick={onOpenStoreModal}
+              className="px-3.5 py-2 border-2 border-black bg-neoGreen hover:bg-emerald-400 text-black text-xs font-black uppercase tracking-wider transition-all shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5"
+            >
+              🚀 Buka Toko
+            </button>
+          )}
         </nav>
 
         {/* Search Bar */}
@@ -197,6 +219,23 @@ export default function FrontHeader({
                     >
                       ❤️ {t('wishlist')} ({wishlistCount})
                     </button>
+                    {myStore ? (
+                      <button 
+                        id="user-store-menu-btn" 
+                        className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-black dark:text-white border-2 border-black bg-emerald-100 dark:bg-emerald-950 hover:bg-neoGreen shadow-neo-sm transition-all"
+                        onClick={() => { setDropOpen(false); onGoToSeller() }}
+                      >
+                        🏬 Toko Saya (Seller Center)
+                      </button>
+                    ) : (
+                      <button 
+                        id="user-open-store-menu-btn" 
+                        className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-black dark:text-white border-2 border-black bg-emerald-100 dark:bg-emerald-950 hover:bg-neoGreen shadow-neo-sm transition-all"
+                        onClick={() => { setDropOpen(false); onOpenStoreModal() }}
+                      >
+                        🚀 Buka Toko Gratis
+                      </button>
+                    )}
                     {onOpenAdmin && (
                       <button 
                         className="w-full text-left flex items-center gap-2 px-3 py-2.5 text-xs font-black uppercase text-black dark:text-white border-2 border-black bg-neoCyan/20 hover:bg-neoCyan shadow-neo-sm transition-all"

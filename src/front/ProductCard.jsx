@@ -96,6 +96,11 @@ function ProductCard({ product, onAddToCart, onClick, wishlist = [], onToggleWis
           {product.name}
         </div>
 
+        <div className="flex items-center gap-1 text-[10px] font-bold text-gray-500 dark:text-gray-400">
+          <span>🏪</span>
+          <span className="truncate font-black uppercase text-black/70 dark:text-white/70">{product.storeName || 'SE-MARKET Official'}</span>
+        </div>
+
         <div className="mt-auto pt-2">
           {product.originalPrice && product.originalPrice > product.price && (
             <div className="text-[11px] font-bold text-zinc-400 line-through">

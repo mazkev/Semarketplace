@@ -3,7 +3,8 @@ import { formatPrice } from '../utils'
 
 export default function ProductDetail({ 
   product, onBack, onAddToCart, wishlist = [], 
-  onToggleWishlist, reviews = [], onSubmitReview, onDeleteReview, user 
+  onToggleWishlist, reviews = [], onSubmitReview, onDeleteReview, user,
+  onSelectStore
 }) {
   const [qty, setQty] = useState(1)
 
@@ -78,6 +79,33 @@ export default function ProductDetail({
               <span className="bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white text-black dark:text-white px-2.5 py-1 rounded-lg shadow-neo-sm">
                 {product.sold || 0} ITEMS ORDERED
               </span>
+            </div>
+
+            {/* Store Information Box */}
+            <div className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-zinc-800/80 border-2 border-black dark:border-white rounded-xl mb-6 shadow-neo-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-neoYellow border-2 border-black rounded-lg flex items-center justify-center text-xl shadow-neo-sm">
+                  🏪
+                </div>
+                <div>
+                  <div className="font-black text-xs uppercase text-black dark:text-white flex items-center gap-1.5">
+                    <span>{product.storeName || 'SE-MARKET Official Store'}</span>
+                    <span className="text-[9px] bg-black text-white px-1.5 py-0.5 rounded font-black">PRO</span>
+                  </div>
+                  <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400">
+                    Penjual Terverifikasi • Pengiriman Cepat
+                  </div>
+                </div>
+              </div>
+              {onSelectStore && (
+                <button
+                  type="button"
+                  onClick={() => onSelectStore(product.storeId || product.storeSlug || 'semarket-official')}
+                  className="px-3 py-1.5 bg-white dark:bg-zinc-900 border-2 border-black text-xs font-black uppercase rounded-lg shadow-neo-sm hover:bg-yellow-50 active:translate-x-0.5 active:translate-y-0.5 transition-all text-black dark:text-white"
+                >
+                  Kunjungi Toko →
+                </button>
+              )}
             </div>
 
             {/* Pricing Box */}

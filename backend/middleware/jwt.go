@@ -93,10 +93,17 @@ func ExtractToken(r *http.Request) string {
 	return ""
 }
 
-// GetClaims retrieves Claims from request context if authenticated.
+// GetClaims retrieves Claims from request context if authenticated,
+// or directly extracts and validates from Authorization header.
 func GetClaims(r *http.Request) *Claims {
 	if val := r.Context().Value(UserContextKey); val != nil {
 		if claims, ok := val.(*Claims); ok {
+			return claims
+		}
+	}
+	tokenStr := ExtractToken(r)
+	if tokenStr != "" {
+		if claims, err := ValidateToken(tokenStr); err == nil {
 			return claims
 		}
 	}

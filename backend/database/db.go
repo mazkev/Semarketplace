@@ -171,6 +171,18 @@ func migrateSchema(db *sql.DB) error {
 			created_at VARCHAR(64) NOT NULL,
 			UNIQUE(user_id, product_id)
 		);`,
+		`CREATE TABLE IF NOT EXISTS stores (
+			id VARCHAR(64) PRIMARY KEY,
+			user_id VARCHAR(64) UNIQUE NOT NULL,
+			name VARCHAR(255) NOT NULL,
+			slug VARCHAR(255) UNIQUE NOT NULL,
+			description TEXT,
+			city VARCHAR(100) NOT NULL DEFAULT '',
+			logo TEXT,
+			banner TEXT,
+			is_verified INTEGER NOT NULL DEFAULT 1,
+			created_at VARCHAR(64) NOT NULL
+		);`,
 		// High-performance B-Tree indexes for fast lookup and filtering
 		`CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);`,
 		`CREATE INDEX IF NOT EXISTS idx_orders_timestamp ON orders(timestamp DESC);`,
@@ -180,6 +192,8 @@ func migrateSchema(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`,
 		`CREATE INDEX IF NOT EXISTS idx_reviews_product_id ON reviews(product_id);`,
 		`CREATE INDEX IF NOT EXISTS idx_wishlist_user_id ON wishlist(user_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_stores_user_id ON stores(user_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_stores_slug ON stores(slug);`,
 	}
 
 	for _, q := range queries {
@@ -187,6 +201,12 @@ func migrateSchema(db *sql.DB) error {
 			return err
 		}
 	}
+
+	// Safely add store_id and store_name to products if not exists
+	_, _ = db.Exec("ALTER TABLE products ADD COLUMN store_id VARCHAR(64) DEFAULT ''")
+	_, _ = db.Exec("ALTER TABLE products ADD COLUMN store_name VARCHAR(255) DEFAULT ''")
+	_, _ = db.Exec("CREATE INDEX IF NOT EXISTS idx_products_store_id ON products(store_id)")
+
 	return nil
 }
 
@@ -273,6 +293,26 @@ func seedDefaults(db *sql.DB) error {
 		}
 		log.Println("Seeded initial product catalog")
 	}
+
+	// Seed Official Store
+	var storeCount int
+	err = db.QueryRow(Rebind("SELECT COUNT(*) FROM stores WHERE id = ?"), "store-official").Scan(&storeCount)
+	if err == nil && storeCount == 0 {
+		now := time.Now().UTC().Format(time.RFC3339)
+		_, _ = db.Exec(
+			Rebind(`INSERT INTO stores (id, user_id, name, slug, description, city, logo, banner, is_verified, created_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+			"store-official", "admin-001", "SE-MARKET Official Store", "semarket-official",
+			"Toko resmi terpercaya dari SE-MARKET. Menjual produk original bergaransi resmi.", "Jakarta Pusat",
+			"https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=150&auto=format&fit=crop&q=80",
+			"https://images.unsplash.com/photo-1555421689-491a97ff2040?w=1200&auto=format&fit=crop&q=80",
+			1, now,
+		)
+		log.Println("Seeded official store (SE-MARKET Official Store)")
+	}
+
+	// Backfill existing products without store_id
+	_, _ = db.Exec(Rebind("UPDATE products SET store_id = 'store-official', store_name = 'SE-MARKET Official Store' WHERE store_id IS NULL OR store_id = ''"))
 
 	return nil
 }
