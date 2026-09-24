@@ -8,6 +8,7 @@ type Product struct {
 	Name          string   `json:"name"`
 	Price         float64  `json:"price"`
 	OriginalPrice float64  `json:"originalPrice"`
+	GroupPrice    float64  `json:"groupPrice,omitempty"`
 	Category      string   `json:"category"`
 	Image         string   `json:"image"`
 	Stock         int      `json:"stock"`
@@ -129,3 +130,31 @@ type AnalyticsOverview struct {
 	CustomerInsights     []CustomerInsight `json:"customerInsights"`
 	Summary              AnalyticsSummary  `json:"summary"`
 }
+
+type GroupBuy struct {
+	ID              string           `json:"_id"`
+	IDAlias         string           `json:"id,omitempty"`
+	ProductID       string           `json:"productId"`
+	ProductName     string           `json:"productName,omitempty"`
+	ProductImage    string           `json:"productImage,omitempty"`
+	GroupPrice      float64          `json:"groupPrice"`
+	OriginalPrice   float64          `json:"originalPrice"`
+	HostUserID      string           `json:"hostUserId"`
+	HostUserName    string           `json:"hostUserName"`
+	RequiredMembers int              `json:"requiredMembers"`
+	CurrentMembers  int              `json:"currentMembers"`
+	Status          string           `json:"status"` // open, completed, expired
+	ExpiresAt       string           `json:"expiresAt"`
+	CreatedAt       string           `json:"createdAt"`
+	Members         []GroupBuyMember `json:"members,omitempty"`
+}
+
+type GroupBuyMember struct {
+	ID         string `json:"_id"`
+	GroupBuyID string `json:"groupBuyId"`
+	UserID     string `json:"userId"`
+	UserName   string `json:"userName"`
+	OrderID    string `json:"orderId,omitempty"`
+	JoinedAt   string `json:"joinedAt"`
+}
+

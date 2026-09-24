@@ -115,8 +115,14 @@ function ProductCard({ product, onAddToCart, onClick, wishlist = [], onToggleWis
               {formatPrice(product.originalPrice)}
             </div>
           )}
-          <div className="text-lg font-black text-black dark:text-white tracking-tight">
-            {formatPrice(product.price)}
+          <div className="flex items-baseline justify-between gap-1 flex-wrap">
+            <div className="text-lg font-black text-black dark:text-white tracking-tight">
+              {formatPrice(product.price)}
+            </div>
+            <div className="text-[10px] font-black text-neoPink bg-pink-50 dark:bg-pink-950/80 px-1.5 py-0.5 rounded border border-neoPink flex items-center gap-1 shadow-neo-sm">
+              <span>👥</span>
+              <span>{formatPrice(product.groupPrice || Math.round(product.price * 0.75))}</span>
+            </div>
           </div>
 
           {/* Neo Add To Cart Button */}

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { formatPrice } from '../utils'
+import { apiFetch } from '../api'
 
 export default function ProductDetail({ 
   product, onBack, onAddToCart, wishlist = [], 
@@ -8,16 +9,105 @@ export default function ProductDetail({
 }) {
   const [qty, setQty] = useState(1)
   const [selectedVariant, setSelectedVariant] = useState(product?.variants?.[0] || '')
+  const [groupBuys, setGroupBuys] = useState([])
+  const [loadingGb, setLoadingGb] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [activeTeam, setActiveTeam] = useState(null)
+  const [isGbActionLoading, setIsGbActionLoading] = useState(false)
 
   useEffect(() => {
     setSelectedVariant(product?.variants?.[0] || '')
   }, [product])
 
+  const groupPrice = product?.groupPrice || Math.round((product?.price || 0) * 0.75)
+  const groupDiscountPct = product?.price ? Math.round((1 - groupPrice / product.price) * 100) : 25
+
+  const fetchGroupBuys = useCallback(async () => {
+    if (!product?._id && !product?.id) return
+    try {
+      setLoadingGb(true)
+      const prodId = product._id || product.id
+      const data = await apiFetch(`/group-buys?productId=${prodId}`)
+      if (Array.isArray(data)) {
+        setGroupBuys(data.filter(g => g.status === 'open'))
+      }
+    } catch (err) {
+      console.error('Failed to fetch group buys', err)
+    } finally {
+      setLoadingGb(false)
+    }
+  }, [product])
+
+  useEffect(() => {
+    fetchGroupBuys()
+  }, [fetchGroupBuys])
+
   if (!product) return null
 
   const handleAddCart = () => {
     for (let i = 0; i < qty; i++) {
-      onAddToCart({ ...product, variant: selectedVariant })
+      onAddToCart({ ...product, variant: selectedVariant, isGroupBuy: false })
+    }
+  }
+
+  const handleJoinTeam = async (team) => {
+    try {
+      setIsGbActionLoading(true)
+      const teamId = team._id || team.id
+      const updatedTeam = await apiFetch(`/group-buys/${teamId}/join`, {
+        method: 'POST'
+      })
+      for (let i = 0; i < qty; i++) {
+        onAddToCart({
+          ...product,
+          price: groupPrice,
+          groupPrice: groupPrice,
+          isGroupBuy: true,
+          groupBuyId: teamId,
+          variant: selectedVariant
+        })
+      }
+      setActiveTeam(updatedTeam || team)
+      setShareModalOpen(true)
+      fetchGroupBuys()
+    } catch (err) {
+      alert(err.message || 'Gagal bergabung dengan tim beli bareng')
+    } finally {
+      setIsGbActionLoading(false)
+    }
+  }
+
+  const handleStartGroupBuy = async () => {
+    try {
+      setIsGbActionLoading(true)
+      const newTeam = await apiFetch('/group-buys', {
+        method: 'POST',
+        body: JSON.stringify({
+          productId: product._id || product.id,
+          productName: product.name,
+          productImage: product.image,
+          regularPrice: product.price,
+          groupPrice: groupPrice,
+          requiredMembers: 2
+        })
+      })
+      for (let i = 0; i < qty; i++) {
+        onAddToCart({
+          ...product,
+          price: groupPrice,
+          groupPrice: groupPrice,
+          isGroupBuy: true,
+          groupBuyId: newTeam._id || newTeam.id,
+          variant: selectedVariant
+        })
+      }
+      setActiveTeam(newTeam)
+      setShareModalOpen(true)
+      fetchGroupBuys()
+    } catch (err) {
+      alert(err.message || 'Gagal memulai tim beli bareng')
+    } finally {
+      setIsGbActionLoading(false)
     }
   }
 
@@ -69,6 +159,9 @@ export default function ProductDetail({
               <span className="px-3 py-1 bg-neoGreen text-black border-2 border-black rounded-lg text-xs font-black uppercase tracking-wider shadow-neo-sm">
                 IN STOCK ({product.stock || 0})
               </span>
+              <span className="px-3 py-1 bg-neoPink text-white border-2 border-black rounded-lg text-xs font-black uppercase tracking-wider shadow-neo-sm flex items-center gap-1 animate-pulse">
+                <span>👥</span> BELI BARENG HEMAT {groupDiscountPct}%
+              </span>
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black text-black dark:text-white uppercase tracking-tight leading-tight mb-4">
@@ -113,16 +206,134 @@ export default function ProductDetail({
               )}
             </div>
 
-            {/* Pricing Box */}
-            <div className="bg-neoYellow/20 border-3 border-black dark:border-white rounded-2xl p-6 mb-6 shadow-neo-sm">
-              {discountPct > 0 && (
-                <div className="text-xs font-bold text-zinc-400 line-through mb-1">
-                  ORIGINAL PRICE: {formatPrice(product.originalPrice)}
+            {/* Dual Pricing Box (Beli Sendiri vs Beli Bareng ala Pinduoduo) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {/* Option A: Beli Sendiri */}
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/60 border-3 border-black dark:border-white rounded-2xl shadow-neo-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                      Beli Satuan
+                    </span>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                      Regular
+                    </span>
+                  </div>
+                  {discountPct > 0 && (
+                    <div className="text-[11px] font-bold text-zinc-400 line-through">
+                      {formatPrice(product.originalPrice)}
+                    </div>
+                  )}
+                  <div className="text-2xl font-black text-black dark:text-white tracking-tight">
+                    {formatPrice(product.price)}
+                  </div>
+                </div>
+                <div className="text-[10px] font-bold text-zinc-500 mt-2">
+                  Pengiriman langsung tanpa menunggu tim
+                </div>
+              </div>
+
+              {/* Option B: Beli Bareng */}
+              <div className="p-4 bg-neoPink/10 dark:bg-pink-950/40 border-3 border-neoPink rounded-2xl shadow-neo flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-neoPink text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg shadow-sm">
+                  HEMAT {groupDiscountPct}%
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-neoPink">
+                      👥 Beli Bareng (Tim 2 Org)
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-bold text-zinc-400 line-through">
+                    {formatPrice(product.price)}
+                  </div>
+                  <div className="text-2xl font-black text-neoPink tracking-tight">
+                    {formatPrice(groupPrice)}
+                  </div>
+                </div>
+                <div className="text-[10px] font-black text-black dark:text-white mt-2 flex items-center gap-1">
+                  <span>🔥</span> Ajak 1 teman / gabung tim aktif
+                </div>
+              </div>
+            </div>
+
+            {/* Open Teams Widget (Pinduoduo Live Open Teams) */}
+            <div className="mb-6 p-4 bg-yellow-50 dark:bg-zinc-800/80 border-3 border-black dark:border-white rounded-2xl shadow-neo-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">👥</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">
+                    TIM BELI BARENG AKTIF ({groupBuys.length})
+                  </span>
+                </div>
+                <span className="text-[10px] font-black text-zinc-500 uppercase">
+                  SLOT TERBATAS
+                </span>
+              </div>
+
+              {loadingGb ? (
+                <div className="text-xs font-bold text-zinc-400 py-3 text-center">
+                  Memuat tim aktif...
+                </div>
+              ) : groupBuys.length === 0 ? (
+                <div className="p-3 bg-white dark:bg-zinc-900 border-2 border-dashed border-black/40 dark:border-white/40 rounded-xl text-center">
+                  <div className="text-xs font-black text-black dark:text-white uppercase mb-0.5">
+                    Belum ada tim terbuka untuk produk ini
+                  </div>
+                  <div className="text-[10px] font-bold text-zinc-500">
+                    Jadilah Ketua Tim pertama dengan menekan tombol &ldquo;Beli Bareng&rdquo; di bawah!
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {groupBuys.map((team) => {
+                    const remainingSlots = Math.max(1, (team.requiredMembers || 2) - (team.currentMembers || 1))
+                    return (
+                      <div 
+                        key={team._id || team.id}
+                        className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 border-2 border-black dark:border-white rounded-xl shadow-neo-sm gap-2"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {team.hostAvatar ? (
+                            <img 
+                              src={team.hostAvatar} 
+                              alt={team.hostName} 
+                              className="w-8 h-8 rounded-full border border-black object-cover shrink-0" 
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-neoPink text-white font-black text-xs flex items-center justify-center border border-black shrink-0">
+                              {team.hostName?.[0] || 'U'}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="text-xs font-black text-black dark:text-white uppercase truncate">
+                              {team.hostName}
+                            </div>
+                            <div className="text-[10px] font-bold text-rose-500 dark:text-rose-400">
+                              Kurang {remainingSlots} orang lagi!
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-right hidden sm:block">
+                            <div className="text-[10px] font-bold text-zinc-500">Berakhir dlm</div>
+                            <div className="text-[10px] font-black text-black dark:text-white">23 Jam</div>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={isGbActionLoading}
+                            onClick={() => handleJoinTeam(team)}
+                            className="px-3 py-1.5 bg-neoPink hover:bg-pink-500 text-white border-2 border-black rounded-lg text-xs font-black uppercase shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                          >
+                            Gabung Tim →
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
-              <div className="text-3xl sm:text-4xl font-black text-black dark:text-white tracking-tight">
-                {formatPrice(product.price)}
-              </div>
             </div>
 
             {/* Description */}
@@ -170,7 +381,7 @@ export default function ProductDetail({
               </div>
             )}
 
-            {/* Quantity and Actions */}
+            {/* Quantity and Dual Actions (Beli Sendiri vs Beli Bareng) */}
             <div className="mt-auto space-y-4 pt-6 border-t-3 border-black dark:border-white">
               <div className="flex items-center gap-4">
                 <span className="text-xs font-black uppercase tracking-wider text-black dark:text-white">QUANTITY:</span>
@@ -194,20 +405,35 @@ export default function ProductDetail({
                 </div>
               </div>
 
+              {/* Dual Purchase Actions */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Button 1: Regular Buy */}
                 <button 
-                  className="py-4 bg-neoYellow hover:bg-yellow-300 text-black border-3 border-black dark:border-white rounded-xl font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
+                  className="py-3.5 px-4 bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-black dark:text-white border-3 border-black dark:border-white rounded-xl font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex flex-col items-center justify-center"
                   onClick={handleAddCart}
                 >
-                  <span>🛒</span>
-                  <span>ADD TO CART</span>
+                  <span className="flex items-center gap-1.5">
+                    <span>🛒</span>
+                    <span>BELI SENDIRI</span>
+                  </span>
+                  <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400">
+                    {formatPrice(product.price * qty)}
+                  </span>
                 </button>
+
+                {/* Button 2: Team Buy (Beli Bareng) */}
                 <button 
-                  className="py-4 bg-neoGreen hover:bg-emerald-400 text-black border-3 border-black dark:border-white rounded-xl font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
-                  onClick={() => { handleAddCart(); }}
+                  disabled={isGbActionLoading}
+                  className="py-3.5 px-4 bg-neoPink hover:bg-pink-500 text-white border-3 border-black dark:border-white rounded-xl font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex flex-col items-center justify-center"
+                  onClick={handleStartGroupBuy}
                 >
-                  <span>⚡</span>
-                  <span>ORDER DIRECTLY</span>
+                  <span className="flex items-center gap-1.5">
+                    <span>👥</span>
+                    <span>BUAT TIM BELI BARENG</span>
+                  </span>
+                  <span className="text-[11px] font-black text-yellow-200">
+                    HEMAT 25% • {formatPrice(groupPrice * qty)}
+                  </span>
                 </button>
               </div>
             </div>
@@ -315,6 +541,15 @@ export default function ProductDetail({
         </div>
 
       </div>
+
+      {/* Share Group Buy Modal */}
+      <ShareGroupBuyModal 
+        isOpen={shareModalOpen} 
+        onClose={() => setShareModalOpen(false)} 
+        team={activeTeam} 
+        product={product} 
+        groupPrice={groupPrice} 
+      />
     </div>
   )
 }
@@ -376,3 +611,118 @@ function ReviewForm({ onSubmit, user }) {
     </form>
   )
 }
+
+function ShareGroupBuyModal({ isOpen, onClose, team, product, groupPrice }) {
+  const [copied, setCopied] = useState(false)
+  if (!isOpen || !team) return null
+
+  const shareUrl = `${window.location.origin}?gb=${team._id || team.id}&p=${product._id || product.id}`
+  const remainingSlots = Math.max(1, (team.requiredMembers || 2) - (team.currentMembers || 1))
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(shareUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleWhatsApp = () => {
+    const text = `Hai! Yuk beli bareng produk "${product.name}" di SeMarketplace cuma ${formatPrice(groupPrice)} (Hemat 25%)! Klik link ini untuk gabung tim: ${shareUrl}`
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank')
+  }
+
+  return (
+    <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm select-none animate-fade-in">
+      <div className="bg-white dark:bg-zinc-900 border-4 border-black dark:border-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-neo-xl relative">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white font-black text-sm flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all text-black dark:text-white"
+        >
+          ✕
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-neoPink text-white border-3 border-black flex items-center justify-center text-2xl shadow-neo-sm shrink-0">
+            👥
+          </div>
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-yellow-200 dark:bg-yellow-400 text-black px-2 py-0.5 rounded border border-black">
+              BELI BARENG AKTIF
+            </span>
+            <h3 className="text-lg sm:text-xl font-black text-black dark:text-white uppercase tracking-tight">
+              Ajak Teman & Selesaikan Tim!
+            </h3>
+          </div>
+        </div>
+
+        <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 mb-5 leading-relaxed">
+          Pesanan Beli Bareng Anda telah dimasukkan ke keranjang dengan potongan harga hemat 25%! Tim Anda butuh <strong className="text-rose-500 font-black">{remainingSlots} orang lagi</strong> agar pesanan diproses.
+        </p>
+
+        {/* Product mini card */}
+        <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/80 border-2 border-black dark:border-white rounded-xl mb-5">
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className="w-12 h-12 rounded-lg object-cover border border-black shrink-0" 
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&auto=format&fit=crop&q=80';
+            }}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-black text-black dark:text-white uppercase truncate">
+              {product.name}
+            </div>
+            <div className="text-xs font-black text-neoPink flex items-center gap-2">
+              <span>{formatPrice(groupPrice)}</span>
+              <span className="text-[10px] text-zinc-400 line-through font-normal">{formatPrice(product.price)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Share link input */}
+        <div className="mb-4">
+          <label className="block text-[10px] font-black text-black dark:text-white uppercase tracking-wider mb-1.5">
+            LINK UNDANGAN TIM:
+          </label>
+          <div className="flex gap-2">
+            <input 
+              type="text" 
+              readOnly 
+              value={shareUrl}
+              className="flex-1 bg-zinc-100 dark:bg-zinc-800 border-2 border-black dark:border-white rounded-xl px-3 py-2 text-xs font-bold text-black dark:text-white outline-none select-all"
+            />
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="px-4 py-2 bg-neoYellow hover:bg-yellow-300 text-black border-2 border-black rounded-xl font-black text-xs uppercase shadow-neo-sm active:translate-x-0.5 active:translate-y-0.5 transition-all shrink-0"
+            >
+              {copied ? '✓ TERSALIN' : '📋 SALIN'}
+            </button>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={handleWhatsApp}
+            className="w-full py-3 bg-[#25D366] hover:bg-[#20ba59] text-white border-2 border-black rounded-xl font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+          >
+            <span>💬</span>
+            <span>BAGIKAN KE WHATSAPP</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-3 bg-black hover:bg-zinc-800 text-white border-2 border-black dark:border-white rounded-xl font-black text-xs uppercase tracking-wider shadow-neo active:translate-x-0.5 active:translate-y-0.5 transition-all"
+          >
+            LANJUT KE KERANJANG BELANJA →
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+

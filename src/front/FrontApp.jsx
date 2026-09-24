@@ -202,13 +202,15 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
 
   const addToCart = useCallback(product => {
     const variant = product.variant || (product.variants && product.variants.length > 0 ? product.variants[0] : '')
-    const cartItemId = (product._id || product.id) + (variant ? '::' + variant : '')
+    const isGroupBuy = Boolean(product.isGroupBuy)
+    const activePrice = isGroupBuy && product.groupPrice ? product.groupPrice : product.price
+    const cartItemId = (product._id || product.id) + (variant ? '::' + variant : '') + (isGroupBuy ? '::gb' : '')
     setCart(prev => {
       const ex = prev.find(i => (i.cartItemId || i._id || i.id) === cartItemId)
       if (ex) return prev.map(i => (i.cartItemId || i._id || i.id) === cartItemId ? { ...i, qty: i.qty + 1 } : i)
-      return [...prev, { ...product, variant, cartItemId, qty: 1 }]
+      return [...prev, { ...product, price: activePrice, isGroupBuy, groupBuyId: product.groupBuyId, variant, cartItemId, qty: 1 }]
     })
-    showToast(`Added "${product.name}${variant ? ' (' + variant + ')' : ''}" to cart`, 'success')
+    showToast(`Added ${isGroupBuy ? '👥 [Beli Bareng] ' : ''}"${product.name}${variant ? ' (' + variant + ')' : ''}" to cart`, 'success')
   }, [showToast])
 
   const updateQty = useCallback((id, qty) => {

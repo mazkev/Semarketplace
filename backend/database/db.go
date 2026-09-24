@@ -194,6 +194,30 @@ func migrateSchema(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_wishlist_user_id ON wishlist(user_id);`,
 		`CREATE INDEX IF NOT EXISTS idx_stores_user_id ON stores(user_id);`,
 		`CREATE INDEX IF NOT EXISTS idx_stores_slug ON stores(slug);`,
+		`CREATE TABLE IF NOT EXISTS group_buys (
+			id VARCHAR(64) PRIMARY KEY,
+			product_id VARCHAR(64) NOT NULL,
+			host_user_id VARCHAR(64) NOT NULL,
+			host_user_name VARCHAR(255) NOT NULL,
+			group_price NUMERIC(14,2) NOT NULL,
+			required_members INTEGER NOT NULL DEFAULT 2,
+			current_members INTEGER NOT NULL DEFAULT 1,
+			status VARCHAR(30) NOT NULL DEFAULT 'open',
+			expires_at VARCHAR(64) NOT NULL,
+			created_at VARCHAR(64) NOT NULL
+		);`,
+		`CREATE TABLE IF NOT EXISTS group_buy_members (
+			id VARCHAR(64) PRIMARY KEY,
+			group_buy_id VARCHAR(64) NOT NULL,
+			user_id VARCHAR(64) NOT NULL,
+			user_name VARCHAR(255) NOT NULL,
+			order_id VARCHAR(64) DEFAULT '',
+			joined_at VARCHAR(64) NOT NULL,
+			UNIQUE(group_buy_id, user_id)
+		);`,
+		`CREATE INDEX IF NOT EXISTS idx_group_buys_product_id ON group_buys(product_id);`,
+		`CREATE INDEX IF NOT EXISTS idx_group_buys_status ON group_buys(status);`,
+		`CREATE INDEX IF NOT EXISTS idx_group_buy_members_gb_id ON group_buy_members(group_buy_id);`,
 	}
 
 	for _, q := range queries {
@@ -324,6 +348,40 @@ func seedDefaults(db *sql.DB) error {
 	_, _ = db.Exec(Rebind("UPDATE products SET variants_json = '[\"S\", \"M\", \"L\", \"XL\"]' WHERE category = 'Men''s clothing' AND (variants_json IS NULL OR variants_json = '' OR variants_json = '[]')"))
 	_, _ = db.Exec(Rebind("UPDATE products SET variants_json = '[\"Diameter 16mm\", \"Diameter 18mm\", \"Diameter 20mm\"]' WHERE category = 'Jewelery' AND (variants_json IS NULL OR variants_json = '' OR variants_json = '[]')"))
 	_, _ = db.Exec(Rebind("UPDATE products SET variants_json = '[\"Black\", \"Silver\", \"Space Gray\"]' WHERE category = 'Electronics' AND (variants_json IS NULL OR variants_json = '' OR variants_json = '[]')"))
+
+	// Seed Sample Open Group Buys for demo (product 2 and 3)
+	var gbCount int
+	err = db.QueryRow(Rebind("SELECT COUNT(*) FROM group_buys")).Scan(&gbCount)
+	if err == nil && gbCount == 0 {
+		now := time.Now().UTC()
+		expires1 := now.Add(18 * time.Hour).Format(time.RFC3339)
+		expires2 := now.Add(22 * time.Hour).Format(time.RFC3339)
+
+		// Team 1: Product 2 (Mens Casual Premium Slim Fit T-Shirts) - normal 223k, group 169k
+		_, _ = db.Exec(
+			Rebind(`INSERT INTO group_buys (id, product_id, host_user_id, host_user_name, group_price, required_members, current_members, status, expires_at, created_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+			"gb-demo-1", "2", "user-siti", "Siti Rahma", 169000.0, 2, 1, "open", expires1, now.Format(time.RFC3339),
+		)
+		_, _ = db.Exec(
+			Rebind(`INSERT INTO group_buy_members (id, group_buy_id, user_id, user_name, order_id, joined_at)
+			 VALUES (?, ?, ?, ?, ?, ?)`),
+			"gbm-demo-1", "gb-demo-1", "user-siti", "Siti Rahma", "ORD-INIT-1", now.Format(time.RFC3339),
+		)
+
+		// Team 2: Product 3 (Mens Cotton Jacket) - normal 559.9k, group 420k
+		_, _ = db.Exec(
+			Rebind(`INSERT INTO group_buys (id, product_id, host_user_id, host_user_name, group_price, required_members, current_members, status, expires_at, created_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+			"gb-demo-2", "3", "user-budi", "Budi Santoso", 420000.0, 2, 1, "open", expires2, now.Format(time.RFC3339),
+		)
+		_, _ = db.Exec(
+			Rebind(`INSERT INTO group_buy_members (id, group_buy_id, user_id, user_name, order_id, joined_at)
+			 VALUES (?, ?, ?, ?, ?, ?)`),
+			"gbm-demo-2", "gb-demo-2", "user-budi", "Budi Santoso", "ORD-INIT-2", now.Format(time.RFC3339),
+		)
+		log.Println("Seeded active open group buys for social shopping demo")
+	}
 
 	return nil
 }

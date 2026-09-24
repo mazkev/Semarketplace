@@ -202,6 +202,7 @@ async function initStorage() {
             rating: p.rating,
             sold: Math.floor(Math.random() * 200) + 50,
             description: p.description,
+            groupPrice: Math.round(priceIDR * 0.75),
             isFlashSale: p.discountPercentage > 15
           };
         });
@@ -542,6 +543,108 @@ export async function apiFetch(endpoint, options = {}) {
     }
     if (endpoint === '/seller/orders') {
       return [];
+    }
+  }
+
+  if (endpoint.startsWith('/group-buys')) {
+    const parts = endpoint.split('?')[0].split('/').filter(Boolean);
+    const savedGb = JSON.parse(localStorage.getItem('mock_group_buys') || '[]');
+    if (savedGb.length === 0) {
+      const initialGb = [
+        {
+          _id: 'gb-mock-1',
+          id: 'gb-mock-1',
+          productId: '2',
+          productName: 'Mens Casual Premium Slim Fit T-Shirts',
+          productImage: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80',
+          regularPrice: 223000,
+          groupPrice: 167250,
+          hostUserId: 'user-demo-1',
+          hostName: 'Budi Santoso',
+          hostAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+          requiredMembers: 2,
+          currentMembers: 1,
+          status: 'open',
+          expiresAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+          createdAt: new Date().toISOString(),
+          members: [
+            { userId: 'user-demo-1', userName: 'Budi Santoso', role: 'host' }
+          ]
+        },
+        {
+          _id: 'gb-mock-2',
+          id: 'gb-mock-2',
+          productId: '3',
+          productName: 'Mens Cotton Jacket',
+          productImage: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?w=600&auto=format&fit=crop&q=80',
+          regularPrice: 559900,
+          groupPrice: 419925,
+          hostUserId: 'user-demo-2',
+          hostName: 'Siti Rahma',
+          hostAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80',
+          requiredMembers: 2,
+          currentMembers: 1,
+          status: 'open',
+          expiresAt: new Date(Date.now() + 20 * 3600 * 1000).toISOString(),
+          createdAt: new Date().toISOString(),
+          members: [
+            { userId: 'user-demo-2', userName: 'Siti Rahma', role: 'host' }
+          ]
+        }
+      ];
+      localStorage.setItem('mock_group_buys', JSON.stringify(initialGb));
+    }
+    const currentGb = JSON.parse(localStorage.getItem('mock_group_buys') || '[]');
+
+    if (method === 'GET') {
+      const urlParams = new URLSearchParams(endpoint.includes('?') ? endpoint.split('?')[1] : '');
+      const prodId = urlParams.get('productId');
+      if (parts.length === 2 && parts[0] === 'group-buys' && !endpoint.includes('?')) {
+        const item = currentGb.find(g => (g._id || g.id) === parts[1]);
+        if (!item) throw new Error('Group buy not found');
+        return item;
+      }
+      if (prodId) {
+        return currentGb.filter(g => (g.productId === prodId || g.productId === String(prodId)) && g.status === 'open');
+      }
+      return currentGb;
+    }
+
+    if (method === 'POST') {
+      if (parts.length === 3 && parts[2] === 'join') {
+        const gbId = parts[1];
+        const team = currentGb.find(g => (g._id || g.id) === gbId);
+        if (!team) throw new Error('Group buy not found');
+        if (team.status !== 'open') throw new Error('Group buy already completed');
+        team.currentMembers += 1;
+        if (team.currentMembers >= team.requiredMembers) {
+          team.status = 'completed';
+        }
+        localStorage.setItem('mock_group_buys', JSON.stringify(currentGb));
+        return team;
+      }
+
+      const body = JSON.parse(options.body || '{}');
+      const newGb = {
+        _id: 'gb-' + Date.now(),
+        id: 'gb-' + Date.now(),
+        productId: body.productId,
+        productName: body.productName || 'Product',
+        productImage: body.productImage || '',
+        regularPrice: Number(body.regularPrice) || 0,
+        groupPrice: Number(body.groupPrice) || Math.round(Number(body.regularPrice || 0) * 0.75),
+        hostUserId: 'user-me',
+        hostName: 'Saya',
+        hostAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+        requiredMembers: 2,
+        currentMembers: 1,
+        status: 'open',
+        expiresAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+        createdAt: new Date().toISOString(),
+        members: [{ userId: 'user-me', userName: 'Saya', role: 'host' }]
+      };
+      localStorage.setItem('mock_group_buys', JSON.stringify([newGb, ...currentGb]));
+      return newGb;
     }
   }
 

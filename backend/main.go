@@ -65,6 +65,10 @@ func main() {
 	mux.HandleFunc("/api/stores", handlers.StoresHandler)
 	mux.HandleFunc("/api/stores/", handlers.StoresHandler)
 
+	// Group Buy / Team Purchase routes
+	mux.HandleFunc("/api/group-buys", handlers.GroupBuysHandler)
+	mux.HandleFunc("/api/group-buys/", handlers.GroupBuysHandler)
+
 	// Seller Center routes (Protected with JWT Auth)
 	mux.HandleFunc("/api/seller", middleware.RequireAuth(handlers.SellerHandler))
 	mux.HandleFunc("/api/seller/", middleware.RequireAuth(handlers.SellerHandler))

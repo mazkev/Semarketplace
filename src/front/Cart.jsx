@@ -152,6 +152,11 @@ export default function Cart({ cart, user, onClose, onQtyChange, onRemove, onChe
                           🏷️ Varian: {item.variant}
                         </span>
                       )}
+                      {item.isGroupBuy && (
+                        <span className="inline-block mt-1 ml-1 px-2 py-0.5 bg-neoPink text-white border border-black text-[10px] font-black rounded-md uppercase">
+                          👥 Beli Bareng
+                        </span>
+                      )}
                       <div className="text-sm font-black text-black dark:text-white mt-0.5">
                         {formatPrice(item.price)}
                       </div>
