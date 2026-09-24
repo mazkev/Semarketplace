@@ -2,13 +2,28 @@ import { useState } from 'react'
 import { formatPrice } from '../utils'
 import { useLanguage } from '../i18n'
 
-export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout, appliedCoupon, onApplyCoupon }) {
+const COURIER_OPTIONS = [
+  { id: 'jne', name: 'JNE Reguler', time: '2-3 Hari', baseCost: 12000, icon: '🚚', desc: 'Standar terpercaya antar kota' },
+  { id: 'sicepat', name: 'SiCepat BEST', time: '1-2 Hari', baseCost: 18000, icon: '⚡', desc: 'Pengiriman kilat esok sampai' },
+  { id: 'gosend', name: 'GoSend Instant', time: '2-4 Jam', baseCost: 28000, icon: '🚀', desc: 'Kurir motor tiba hari ini' },
+  { id: 'cargo', name: 'J&T Cargo Hemat', time: '3-5 Hari', baseCost: 10000, icon: '📦', desc: 'Tarif paling ekonomis' },
+]
+
+export default function Cart({ cart, user, onClose, onQtyChange, onRemove, onCheckout, appliedCoupon, onApplyCoupon }) {
   const { t } = useLanguage()
   const [couponCode, setCouponCode] = useState('')
   const [couponError, setCouponError] = useState('')
+  const [selectedCourierId, setSelectedCourierId] = useState('jne')
+  const [shippingAddress, setShippingAddress] = useState(user?.city ? `Jl. Merdeka No. 1, ${user.city}` : 'Jl. Sudirman No. 88, Jakarta Pusat')
+  const [addressError, setAddressError] = useState('')
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0)
   const count = cart.reduce((s, i) => s + i.qty, 0)
+  const isFreeShipping = subtotal >= 500000
+
+  const getCourierCost = (c) => (isFreeShipping && c.id === 'jne' ? 0 : c.baseCost)
+  const selectedCourier = COURIER_OPTIONS.find(c => c.id === selectedCourierId) || COURIER_OPTIONS[0]
+  const shippingCost = getCourierCost(selectedCourier)
 
   let discount = 0
   if (appliedCoupon) {
@@ -19,8 +34,21 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
     else if (appliedCoupon.type === 'fixed') discount = appliedCoupon.value
   }
 
-  const tax = (subtotal - discount) * 0.1
-  const total = Math.max(0, subtotal - discount + tax)
+  const tax = Math.round((subtotal - discount) * 0.1)
+  const total = Math.max(0, subtotal - discount + tax + shippingCost)
+
+  const handleCheckoutClick = () => {
+    if (!shippingAddress.trim()) {
+      setAddressError('Harap isi alamat pengiriman')
+      return
+    }
+    setAddressError('')
+    onCheckout({
+      shippingCourier: `${selectedCourier.name} (${selectedCourier.time})`,
+      shippingCost,
+      shippingAddress: shippingAddress.trim()
+    })
+  }
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim().toUpperCase()
@@ -168,6 +196,73 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
           )}
         </div>
 
+        {/* Shipping & Delivery Courier Section */}
+        {cart.length > 0 && (
+          <div className="p-4 border-t-3 border-black dark:border-white bg-neoCream/30 dark:bg-zinc-800/40 space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white flex items-center gap-1.5">
+                  <span>📍</span> ALAMAT PENGIRIMAN
+                </label>
+                {addressError && (
+                  <span className="text-[10px] font-black text-rose-500 uppercase">Wajib diisi</span>
+                )}
+              </div>
+              <input
+                type="text"
+                value={shippingAddress}
+                onChange={e => { setShippingAddress(e.target.value); setAddressError('') }}
+                placeholder="Contoh: Jl. Sudirman No. 12, Jakarta"
+                className={`w-full px-3 py-2 bg-white dark:bg-zinc-900 border-2 rounded-xl text-xs font-bold outline-none shadow-neo-sm text-black dark:text-white ${
+                  addressError ? 'border-rose-500' : 'border-black dark:border-white'
+                }`}
+              />
+            </div>
+
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white flex items-center justify-between mb-2">
+                <span className="flex items-center gap-1.5"><span>🚚</span> PILIH JASA KURIR EKSPEDISI</span>
+                {isFreeShipping && (
+                  <span className="text-[9px] bg-neoGreen text-black font-black px-1.5 py-0.5 rounded border border-black shadow-neo-sm">
+                    ⚡ BEBAS ONGKIR
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {COURIER_OPTIONS.map((courier) => {
+                  const isSelected = selectedCourierId === courier.id
+                  const cost = getCourierCost(courier)
+                  return (
+                    <div
+                      key={courier.id}
+                      onClick={() => setSelectedCourierId(courier.id)}
+                      className={`p-2.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between select-none ${
+                        isSelected
+                          ? 'bg-neoYellow text-black border-black shadow-neo-sm -translate-x-0.5 -translate-y-0.5 font-black'
+                          : 'bg-white dark:bg-zinc-900 border-black dark:border-white text-black dark:text-white hover:bg-yellow-50 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-base">{courier.icon}</span>
+                        {cost === 0 ? (
+                          <span className="text-[9px] bg-neoGreen text-black font-black px-1.5 py-0.5 rounded border border-black uppercase">
+                            GRATIS
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-black">{formatPrice(cost)}</span>
+                        )}
+                      </div>
+                      <div className="text-[11px] font-black leading-tight uppercase truncate">{courier.name}</div>
+                      <div className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">{courier.time}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Promo Voucher Section */}
         {cart.length > 0 && (
           <div className="p-4 border-t-3 border-black dark:border-white bg-zinc-50 dark:bg-zinc-950">
@@ -231,9 +326,11 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
                 <span>{t('tax')}</span>
                 <span className="font-black text-black dark:text-white">{formatPrice(tax)}</span>
               </div>
-              <div className="flex justify-between text-neoGreen font-black">
-                <span>{t('shipping')}</span>
-                <span>{t('freeShipping')}</span>
+              <div className="flex justify-between items-center text-xs">
+                <span>{t('shipping')} ({selectedCourier.name})</span>
+                <span className={`font-black ${shippingCost === 0 ? 'text-neoGreen' : 'text-black dark:text-white'}`}>
+                  {shippingCost === 0 ? t('freeShipping') : formatPrice(shippingCost)}
+                </span>
               </div>
             </div>
 
@@ -250,7 +347,7 @@ export default function Cart({ cart, onClose, onQtyChange, onRemove, onCheckout,
             <button 
               id="checkout-btn" 
               className="w-full py-4 bg-neoGreen hover:bg-emerald-400 text-black border-3 border-black dark:border-white rounded-2xl font-black text-sm uppercase tracking-wider shadow-neo hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2" 
-              onClick={onCheckout}
+              onClick={handleCheckoutClick}
             >
               <span>{t('checkoutNow')}</span>
             </button>

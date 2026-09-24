@@ -208,6 +208,11 @@ func migrateSchema(db *sql.DB) error {
 	_, _ = db.Exec("ALTER TABLE products ADD COLUMN variants_json TEXT DEFAULT '[]'")
 	_, _ = db.Exec("CREATE INDEX IF NOT EXISTS idx_products_store_id ON products(store_id)")
 
+	// Safely add shipping_courier, shipping_cost, and shipping_address to orders if not exists
+	_, _ = db.Exec("ALTER TABLE orders ADD COLUMN shipping_courier VARCHAR(100) DEFAULT ''")
+	_, _ = db.Exec("ALTER TABLE orders ADD COLUMN shipping_cost NUMERIC(14,2) DEFAULT 0")
+	_, _ = db.Exec("ALTER TABLE orders ADD COLUMN shipping_address TEXT DEFAULT ''")
+
 	return nil
 }
 

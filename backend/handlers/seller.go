@@ -294,7 +294,7 @@ func deleteSellerProduct(w http.ResponseWriter, _ *http.Request, store models.St
 func getSellerOrders(w http.ResponseWriter, _ *http.Request, store models.Store) {
 	// Query all orders and filter ones containing items with store_id == store.ID
 	// In SQLite / Postgres, items are in items_json
-	rows, err := database.DB.Query(database.Rebind("SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp FROM orders ORDER BY timestamp DESC"))
+	rows, err := database.DB.Query(database.Rebind("SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp, COALESCE(shipping_courier, ''), COALESCE(shipping_address, '') FROM orders ORDER BY timestamp DESC"))
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to query orders: "+err.Error())
 		return
@@ -302,14 +302,16 @@ func getSellerOrders(w http.ResponseWriter, _ *http.Request, store models.Store)
 	defer rows.Close()
 
 	type SellerOrder struct {
-		ID            string             `json:"_id"`
-		CustomerID    string             `json:"customerId"`
-		CustomerName  string             `json:"customerName"`
-		CustomerEmail string             `json:"customerEmail"`
-		Items         []models.OrderItem `json:"items"`
-		StoreTotal    float64            `json:"storeTotal"`
-		Status        string             `json:"status"`
-		Timestamp     string             `json:"timestamp"`
+		ID              string             `json:"_id"`
+		CustomerID      string             `json:"customerId"`
+		CustomerName    string             `json:"customerName"`
+		CustomerEmail   string             `json:"customerEmail"`
+		Items           []models.OrderItem `json:"items"`
+		StoreTotal      float64            `json:"storeTotal"`
+		ShippingCourier string             `json:"shippingCourier,omitempty"`
+		ShippingAddress string             `json:"shippingAddress,omitempty"`
+		Status          string             `json:"status"`
+		Timestamp       string             `json:"timestamp"`
 	}
 
 	sellerOrders := make([]SellerOrder, 0)
@@ -317,7 +319,7 @@ func getSellerOrders(w http.ResponseWriter, _ *http.Request, store models.Store)
 	for rows.Next() {
 		var o models.Order
 		var itemsJSON string
-		if err := rows.Scan(&o.ID, &o.CustomerID, &o.CustomerName, &o.CustomerEmail, &itemsJSON, &o.Total, &o.Status, &o.Timestamp); err != nil {
+		if err := rows.Scan(&o.ID, &o.CustomerID, &o.CustomerName, &o.CustomerEmail, &itemsJSON, &o.Total, &o.Status, &o.Timestamp, &o.ShippingCourier, &o.ShippingAddress); err != nil {
 			continue
 		}
 		var allItems []models.OrderItem
@@ -335,14 +337,16 @@ func getSellerOrders(w http.ResponseWriter, _ *http.Request, store models.Store)
 
 		if len(matchedItems) > 0 {
 			sellerOrders = append(sellerOrders, SellerOrder{
-				ID:            o.ID,
-				CustomerID:    o.CustomerID,
-				CustomerName:  o.CustomerName,
-				CustomerEmail: o.CustomerEmail,
-				Items:         matchedItems,
-				StoreTotal:    storeTotal,
-				Status:        o.Status,
-				Timestamp:     o.Timestamp,
+				ID:              o.ID,
+				CustomerID:      o.CustomerID,
+				CustomerName:    o.CustomerName,
+				CustomerEmail:   o.CustomerEmail,
+				Items:           matchedItems,
+				StoreTotal:      storeTotal,
+				ShippingCourier: o.ShippingCourier,
+				ShippingAddress: o.ShippingAddress,
+				Status:          o.Status,
+				Timestamp:       o.Timestamp,
 			})
 		}
 	}

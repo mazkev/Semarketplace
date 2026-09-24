@@ -73,6 +73,26 @@ function OrderRow({ order, onDelete, onTrack }) {
               </div>
             ))}
           </div>
+          {/* Shipping Manifest Details */}
+          {(order.shippingCourier || order.shippingAddress) && (
+            <div className="mb-4 p-3 bg-neoYellow/20 border-2 border-black dark:border-white rounded-xl text-xs space-y-1">
+              {order.shippingCourier && (
+                <div className="flex items-center justify-between font-black uppercase text-black dark:text-white">
+                  <span className="flex items-center gap-1.5"><span>🚚</span> Ekspedisi: {order.shippingCourier}</span>
+                  <span className="bg-neoYellow text-black px-1.5 py-0.5 rounded border border-black text-[10px]">
+                    {order.shippingCost === 0 ? 'Bebas Ongkir' : formatPrice(order.shippingCost)}
+                  </span>
+                </div>
+              )}
+              {order.shippingAddress && (
+                <div className="text-[11px] font-bold text-zinc-600 dark:text-zinc-300 flex items-start gap-1">
+                  <span>📍</span>
+                  <span>Alamat: {order.shippingAddress}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-between items-center pt-3 border-t-2 border-dashed border-black/20 dark:border-white/20">
             <span className="text-xs font-black text-gray-500 uppercase tracking-wider">Total Value</span>
             <span className="text-xl font-black text-black dark:text-white tracking-tight">{formatPrice(order.total)}</span>

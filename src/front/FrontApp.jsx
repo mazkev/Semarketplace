@@ -218,10 +218,14 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
 
   const removeFromCart = useCallback(id => setCart(prev => prev.filter(i => (i.cartItemId || i._id || i.id) !== id)), [])
 
-  const checkout = useCallback(async () => {
+  const checkout = useCallback(async (shippingData = {}) => {
     if (!cart.length) return
     try {
-      const total = cart.reduce((s, i) => s + i.price * i.qty, 0)
+      const courier = shippingData.shippingCourier || 'JNE Reguler (2-3 Hari)'
+      const shippingCost = Number(shippingData.shippingCost) || 0
+      const address = shippingData.shippingAddress || 'Alamat Utama Pembeli'
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0)
+      const total = subtotal + shippingCost
       const txnData = {
         customerId: user._id, 
         customerName: user.name,
@@ -234,6 +238,9 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
           variant: i.variant || ''
         })),
         total,
+        shippingCourier: courier,
+        shippingCost: shippingCost,
+        shippingAddress: address,
         status: 'Processing'
       }
       const response = await apiFetch('/orders', { method: 'POST', body: JSON.stringify(txnData) })
@@ -311,7 +318,7 @@ export default function FrontApp({ user, onLogout, darkMode, setDarkMode }) {
         </div>
       )}
 
-      {cartOpen && <Cart cart={cart} onClose={() => setCartOpen(false)} onQtyChange={updateQty} onRemove={removeFromCart} onCheckout={checkout} appliedCoupon={appliedCoupon} onApplyCoupon={validateCoupon} />}
+      {cartOpen && <Cart cart={cart} user={user} onClose={() => setCartOpen(false)} onQtyChange={updateQty} onRemove={removeFromCart} onCheckout={checkout} appliedCoupon={appliedCoupon} onApplyCoupon={validateCoupon} />}
       {receipt && <Receipt receipt={receipt} onClose={() => { setReceipt(null); setPage('shop') }} onViewOrders={() => { setReceipt(null); setPage('orders') }} />}
 
       <FrontFooter setPage={setPage} />

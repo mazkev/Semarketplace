@@ -381,11 +381,27 @@ export default function SellerCenter({ store, onBack, onViewPublicStore, showToa
                     <div className="space-y-2 mb-3">
                       {o.items?.map((it, idx) => (
                         <div key={idx} className="flex items-center justify-between text-xs font-bold">
-                          <span>📦 {it.name} <span className="text-gray-500">x{it.qty}</span></span>
+                          <span>📦 {it.name} {it.variant && <span className="text-neoPink font-black">({it.variant})</span>} <span className="text-gray-500">x{it.qty}</span></span>
                           <span>{formatPrice(it.price * it.qty)}</span>
                         </div>
                       ))}
                     </div>
+
+                    {(o.shippingCourier || o.shippingAddress) && (
+                      <div className="mb-3 p-2.5 bg-yellow-50 dark:bg-zinc-800 border border-black rounded-lg text-xs space-y-1">
+                        {o.shippingCourier && (
+                          <div className="font-black uppercase text-black dark:text-white flex items-center justify-between">
+                            <span className="flex items-center gap-1.5"><span>🚚</span> Kurir: {o.shippingCourier}</span>
+                          </div>
+                        )}
+                        {o.shippingAddress && (
+                          <div className="text-[11px] font-bold text-gray-600 dark:text-gray-300 flex items-start gap-1">
+                            <span>📍</span>
+                            <span>Alamat Kirim: {o.shippingAddress}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between pt-2 border-t-2 border-gray-100 dark:border-zinc-800 font-black text-sm">
                       <span>Total Pesanan Toko:</span>

@@ -63,15 +63,18 @@ type WishlistItem struct {
 }
 
 type Order struct {
-	ID            string      `json:"_id"`
-	IDAlias       string      `json:"id,omitempty"`
-	CustomerID    string      `json:"customerId"`
-	CustomerName  string      `json:"customerName"`
-	CustomerEmail string      `json:"customerEmail"`
-	Items         []OrderItem `json:"items"`
-	Total         float64     `json:"total"`
-	Status        string      `json:"status"` // Processing, Shipped, Delivered, Cancelled
-	Timestamp     string      `json:"timestamp"`
+	ID              string      `json:"_id"`
+	IDAlias         string      `json:"id,omitempty"`
+	CustomerID      string      `json:"customerId"`
+	CustomerName    string      `json:"customerName"`
+	CustomerEmail   string      `json:"customerEmail"`
+	Items           []OrderItem `json:"items"`
+	Total           float64     `json:"total"`
+	ShippingCourier string      `json:"shippingCourier,omitempty"`
+	ShippingCost    float64     `json:"shippingCost"`
+	ShippingAddress string      `json:"shippingAddress,omitempty"`
+	Status          string      `json:"status"` // Processing, Shipped, Delivered, Cancelled
+	Timestamp       string      `json:"timestamp"`
 }
 
 type User struct {

@@ -70,13 +70,15 @@ func getAllOrders(w http.ResponseWriter, r *http.Request) {
 		customerID := strings.TrimSpace(r.URL.Query().Get("customerId"))
 		if customerID != "" {
 			query := database.Rebind(
-				`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
+				`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp,
+				        COALESCE(shipping_courier, ''), COALESCE(shipping_cost, 0), COALESCE(shipping_address, '')
 				 FROM orders WHERE customer_id = ? ORDER BY timestamp DESC LIMIT ?`,
 			)
 			rows, err = database.DB.Query(query, customerID, limit)
 		} else {
 			query := database.Rebind(
-				`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
+				`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp,
+				        COALESCE(shipping_courier, ''), COALESCE(shipping_cost, 0), COALESCE(shipping_address, '')
 				 FROM orders ORDER BY timestamp DESC LIMIT ?`,
 			)
 			rows, err = database.DB.Query(query, limit)
@@ -84,7 +86,8 @@ func getAllOrders(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Non-admin customer can ONLY view their own orders
 		query := database.Rebind(
-			`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
+			`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp,
+			        COALESCE(shipping_courier, ''), COALESCE(shipping_cost, 0), COALESCE(shipping_address, '')
 			 FROM orders WHERE customer_id = ? ORDER BY timestamp DESC LIMIT ?`,
 		)
 		rows, err = database.DB.Query(query, claims.UserID, limit)
@@ -103,6 +106,7 @@ func getAllOrders(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(
 			&o.ID, &o.CustomerID, &o.CustomerName, &o.CustomerEmail,
 			&itemsJSON, &o.Total, &o.Status, &o.Timestamp,
+			&o.ShippingCourier, &o.ShippingCost, &o.ShippingAddress,
 		); err != nil {
 			middleware.Error(w, http.StatusInternalServerError, "Failed to scan order: "+err.Error())
 			return
@@ -129,12 +133,14 @@ func getOrderByID(w http.ResponseWriter, r *http.Request, id string) {
 	var o models.Order
 	var itemsJSON string
 	err := database.DB.QueryRow(
-		database.Rebind(`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp 
+		database.Rebind(`SELECT id, customer_id, customer_name, customer_email, items_json, total, status, timestamp,
+		                        COALESCE(shipping_courier, ''), COALESCE(shipping_cost, 0), COALESCE(shipping_address, '')
 		 FROM orders WHERE id = ?`),
 		id,
 	).Scan(
 		&o.ID, &o.CustomerID, &o.CustomerName, &o.CustomerEmail,
 		&itemsJSON, &o.Total, &o.Status, &o.Timestamp,
+		&o.ShippingCourier, &o.ShippingCost, &o.ShippingAddress,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -254,9 +260,10 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 
 	// 2. Insert order record
 	_, err = tx.Exec(
-		database.Rebind(`INSERT INTO orders (id, customer_id, customer_name, customer_email, items_json, total, status, timestamp) 
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
+		database.Rebind(`INSERT INTO orders (id, customer_id, customer_name, customer_email, items_json, total, status, timestamp, shipping_courier, shipping_cost, shipping_address) 
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 		o.ID, o.CustomerID, o.CustomerName, o.CustomerEmail, string(itemsBytes), o.Total, o.Status, o.Timestamp,
+		o.ShippingCourier, o.ShippingCost, o.ShippingAddress,
 	)
 	if err != nil {
 		middleware.Error(w, http.StatusInternalServerError, "Failed to insert order: "+err.Error())
@@ -273,6 +280,9 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
 	log.Printf("🛍️ [NEW TRANSACTION] Order ID: %s", o.ID)
 	log.Printf("👤 Customer: %s (%s) [ID: %s]", o.CustomerName, o.CustomerEmail, o.CustomerID)
 	log.Printf("💰 Total Amount: Rp %.0f | Status: %s", o.Total, o.Status)
+	if o.ShippingCourier != "" {
+		log.Printf("🚚 Courier: %s (Ongkir: Rp %.0f) -> Tujuan: %s", o.ShippingCourier, o.ShippingCost, o.ShippingAddress)
+	}
 	log.Printf("📦 Items (%d total):", len(o.Items))
 	for idx, itm := range o.Items {
 		log.Printf("   [%d] %s x%d @ Rp %.0f (ID: %s)", idx+1, itm.Name, itm.Qty, itm.Price, itm.ProductID)

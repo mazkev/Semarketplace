@@ -329,7 +329,15 @@ export async function apiFetch(endpoint, options = {}) {
     const saved = JSON.parse(localStorage.getItem('mock_orders') || '[]');
     if (method === 'GET') return id ? saved.find(o => (o._id || o.id) === id) : saved;
     if (method === 'POST') {
-      const newO = { ...JSON.parse(options.body), _id: 'ORD-' + Date.now(), timestamp: new Date().toISOString() };
+      const body = JSON.parse(options.body);
+      const newO = { 
+        ...body, 
+        _id: 'ORD-' + Date.now(), 
+        timestamp: new Date().toISOString(),
+        shippingCourier: body.shippingCourier || 'JNE Reguler (2-3 Hari)',
+        shippingCost: Number(body.shippingCost) || 0,
+        shippingAddress: body.shippingAddress || 'Alamat Utama Pembeli'
+      };
       localStorage.setItem('mock_orders', JSON.stringify([newO, ...saved]));
       return newO;
     }

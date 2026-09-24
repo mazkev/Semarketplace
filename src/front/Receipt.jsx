@@ -53,15 +53,37 @@ export default function Receipt({ receipt, onClose, onViewOrders }) {
             ))}
           </div>
 
+          {/* Shipping & Delivery Info Banner */}
+          {(receipt.shippingCourier || receipt.shippingAddress) && (
+            <div className="p-3 bg-yellow-50 dark:bg-zinc-800/80 border-2 border-black dark:border-white shadow-neo-sm space-y-1">
+              {receipt.shippingCourier && (
+                <div className="flex items-center justify-between text-[11px] font-black uppercase text-black dark:text-white">
+                  <span className="flex items-center gap-1.5"><span>🚚</span> KURIR: {receipt.shippingCourier}</span>
+                  <span className="bg-neoYellow text-black px-1.5 py-0.5 rounded border border-black text-[10px]">
+                    {receipt.shippingCost === 0 ? 'BEBAS ONGKIR' : formatPrice(receipt.shippingCost)}
+                  </span>
+                </div>
+              )}
+              {receipt.shippingAddress && (
+                <div className="text-[10px] font-bold text-gray-600 dark:text-gray-300 flex items-start gap-1">
+                  <span>📍</span>
+                  <span className="line-clamp-1">{receipt.shippingAddress}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Calculations Box */}
           <div className="bg-neoCream dark:bg-zinc-800 p-4 border-3 border-black dark:border-white space-y-2 shadow-neo-sm text-xs font-bold text-gray-700 dark:text-gray-300">
              <div className="flex justify-between">
                 <span className="uppercase">{t('subtotal')}</span>
-                <span className="font-black text-black dark:text-white">{formatPrice(receipt.total)}</span>
+                <span className="font-black text-black dark:text-white">{formatPrice(receipt.total - (receipt.shippingCost || 0))}</span>
              </div>
-             <div className="flex justify-between items-center text-neoGreen font-black">
-                <span className="uppercase">{t('shipping')}</span>
-                <span className="bg-black text-white px-2 py-0.5 text-[9px] uppercase border border-black">{t('freeShipping')}</span>
+             <div className="flex justify-between items-center">
+                <span className="uppercase">{t('shipping')} {receipt.shippingCourier ? `(${receipt.shippingCourier})` : ''}</span>
+                <span className={`font-black ${receipt.shippingCost === 0 ? 'text-neoGreen' : 'text-black dark:text-white'}`}>
+                  {receipt.shippingCost === 0 ? t('freeShipping') : formatPrice(receipt.shippingCost)}
+                </span>
              </div>
              <div className="pt-2.5 border-t-2 border-dashed border-black/30 dark:border-white/30 flex justify-between items-center">
                 <span className="text-xs font-black text-black dark:text-white uppercase tracking-wider">{t('totalPaid')}</span>
